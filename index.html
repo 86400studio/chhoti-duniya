@@ -5,664 +5,1291 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<title>Chhoti Duniya · Phase 0 test</title>
+<meta name="theme-color" content="#FFF6E5">
+<title>Chhoti Duniya</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Mukta:wght@400;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --cream: #FFF6E5;
-    --white: #FFFFFF;
-    --ink: #33264A;
-    --slate: #6B6478;
-    --mango: #FFB300;
-    --mango-dark: #C98A00;
-    --coral: #FF6F59;
-    --indigo: #4C5FD5;
-    --line: #EEE4D2;
+    --cream: #FFF6E5; --white: #FFFFFF; --ink: #33264A; --slate: #6B6478;
+    --mango: #FFB300; --mango-dark: #C98A00; --line: #EEE4D2; --indigo: #4C5FD5; --coral: #FF6F59;
   }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
   body {
-    margin: 0;
-    background: var(--cream);
-    color: var(--ink);
+    margin: 0; background: var(--cream); color: var(--ink);
     font-family: "Mukta", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    font-size: 16px;
-    line-height: 1.45;
+    font-size: 16px; line-height: 1.45;
+    -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: contain;
   }
-  h1, h2, .brand, .lang, .copy { font-family: "Baloo 2", "Mukta", system-ui, sans-serif; }
+  h1, h2, h3, .brand, .baloo { font-family: "Baloo 2", "Mukta", system-ui, sans-serif; }
+  .screen[hidden], [hidden] { display: none !important; }
+  button { font: inherit; color: inherit; }
 
-  .topbar {
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 16px;
+  /* ---------- Home ---------- */
+  .top { height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
+  .brand { font-weight: 700; font-size: 20px; }
+  .hello { font-family: "Baloo 2", sans-serif; font-weight: 600; color: var(--slate); margin-left: 10px; font-size: 16px; }
+  .lock {
+    position: relative; width: 40px; height: 40px; border-radius: 50%; border: 0; background: transparent;
+    font-size: 18px; opacity: 0.55; cursor: pointer; touch-action: none;
   }
-  .brand { font-weight: 700; font-size: 18px; }
-  .pill {
-    font-size: 12px;
-    font-weight: 600;
-    background: var(--ink);
-    color: var(--white);
-    border-radius: 12px;
-    padding: 2px 10px;
+  .lock::after {
+    content: ""; position: absolute; inset: 2px; border-radius: 50%;
+    border: 3px solid var(--indigo); opacity: 0; transform: scale(0.6);
   }
+  .lock.holding::after { opacity: 1; transform: scale(1.15); transition: transform 3s linear, opacity 0.2s; }
 
-  .warn {
-    display: none;
-    margin: 8px 16px;
-    padding: 12px 16px;
-    border-radius: 16px;
-    background: var(--coral);
-    color: var(--white);
-    font-weight: 600;
+  .cats { display: flex; gap: 14px; overflow-x: auto; padding: 6px 16px 14px; scrollbar-width: none; }
+  .cats::-webkit-scrollbar { display: none; }
+  .cat {
+    flex: 0 0 auto; width: 72px; height: 72px; border-radius: 50%; border: 0;
+    background: var(--c); box-shadow: 0 4px 0 rgba(51, 38, 74, 0.25);
+    font-size: 34px; line-height: 1; cursor: pointer; transition: transform 120ms ease, box-shadow 120ms ease;
   }
-  .warn.show { display: block; }
+  .cat:active { transform: translateY(4px) scale(0.94); box-shadow: none; }
+  .cat.on { outline: 5px solid var(--ink); outline-offset: 2px; }
 
-  /* Player: full width, never taller than the screen minus the buttons and a peek of the shelf */
-  .stage {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    max-height: calc(100vh - 160px);
-    max-height: calc(100dvh - 160px);
-    background: #000;
-  }
-  #playerSlot, #playerSlot iframe, #yt {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    border: 0;
-  }
-
-  .controls {
-    height: 88px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 24px;
-  }
-  .big {
-    width: 72px;
-    height: 72px;
-    border-radius: 50%;
-    border: 0;
-    background: var(--mango);
-    box-shadow: 0 4px 0 var(--mango-dark);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: transform 120ms ease, box-shadow 120ms ease;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .big:active { transform: translateY(4px) scale(0.94); box-shadow: 0 0 0 var(--mango-dark); }
-  .big svg { width: 34px; height: 34px; fill: var(--ink); }
-  .big.alt { background: var(--white); box-shadow: 0 4px 0 #D9CDB6; }
-
-  .shelf { padding: 0 16px 8px; scroll-margin-top: 8px; }
-  .shelf-note { margin: 8px 0 0; font-size: 13px; color: var(--slate); }
-  .cards {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-  }
-  @media (orientation: landscape) {
-    .cards { grid-template-columns: repeat(4, 1fr); }
-  }
-  /* Phone held sideways: video fills the height, our buttons sit beside it, card tops peek below */
-  @media (orientation: landscape) and (max-height: 520px) {
-    .topbar { display: none; }
-    .playrow { display: flex; align-items: stretch; }
-    .stage {
-      flex: 1 1 auto;
-      width: auto;
-      aspect-ratio: auto;
-      height: calc(100vh - 48px);
-      height: calc(100dvh - 48px);
-      max-height: none;
-    }
-    .controls { flex: 0 0 104px; flex-direction: column; height: auto; gap: 16px; }
-    .shelf { padding-top: 8px; }
-  }
+  .row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; padding: 0 16px 24px; }
   .card {
-    position: relative;
-    display: block;
-    width: 100%;
-    padding: 0;
-    aspect-ratio: 16 / 9;
-    border: 6px solid var(--c, var(--indigo));
-    border-radius: 24px;
-    overflow: hidden;
-    background: var(--c, var(--indigo));
-    cursor: pointer;
-    transition: transform 120ms ease;
-    -webkit-tap-highlight-color: transparent;
+    position: relative; display: block; width: 100%; padding: 0; aspect-ratio: 16 / 9;
+    border: 6px solid var(--c, var(--indigo)); border-radius: 24px; overflow: hidden;
+    background: var(--c, var(--indigo)); cursor: pointer; transition: transform 120ms ease;
   }
   .card:active { transform: scale(0.94); }
-  .card img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .lang {
-    position: absolute;
-    left: 8px;
-    bottom: 8px;
-    background: var(--white);
-    color: var(--ink);
-    font-weight: 700;
-    font-size: 14px;
-    border-radius: 12px;
-    padding: 0 10px;
+  .card img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+  .card .star {
+    position: absolute; right: 8px; top: 8px; width: 34px; height: 34px; border-radius: 50%;
+    background: var(--white); font-size: 20px; line-height: 34px; text-align: center;
+  }
+  .card .why {
+    position: absolute; left: 8px; bottom: 8px; background: var(--white); border-radius: 10px;
+    font-size: 11px; font-weight: 600; padding: 0 8px; display: none;
+  }
+  body.showwhy .card .why { display: block; }
+  .empty { grid-column: 1 / -1; text-align: center; font-size: 56px; padding: 40px 0; }
+
+  @media (orientation: landscape) and (max-height: 560px) {
+    .row { display: flex; overflow-x: auto; gap: 16px; padding-bottom: 12px; scrollbar-width: none; }
+    .row::-webkit-scrollbar { display: none; }
+    .row .card { flex: 0 0 44vw; width: 44vw; }
+    .cat { width: 60px; height: 60px; font-size: 28px; }
+    .cats { padding-bottom: 10px; }
+  }
+  @media (min-width: 900px) and (min-height: 561px) { .row { grid-template-columns: repeat(4, 1fr); } }
+
+  /* ---------- Player ---------- */
+  .stage {
+    position: relative; width: 100%; aspect-ratio: 16 / 9;
+    max-height: calc(100vh - 150px); max-height: calc(100dvh - 150px); background: #000; overflow: hidden;
+  }
+  #slot, #slot iframe, #yt { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  #shield { position: absolute; inset: 0; z-index: 2; background: transparent; cursor: pointer; }
+  #cover {
+    position: absolute; inset: 0; z-index: 3; background: var(--ink);
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+  #cover .disc {
+    width: 120px; height: 120px; border-radius: 50%; background: var(--mango);
+    box-shadow: 0 6px 0 var(--mango-dark); display: flex; align-items: center; justify-content: center;
+  }
+  #cover svg { width: 60px; height: 60px; fill: var(--ink); }
+  .controls { height: 88px; display: flex; align-items: center; justify-content: center; gap: 24px; }
+  .big {
+    width: 72px; height: 72px; border-radius: 50%; border: 0; background: var(--mango);
+    box-shadow: 0 4px 0 var(--mango-dark); display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: transform 120ms ease, box-shadow 120ms ease; font-size: 32px; line-height: 1;
+  }
+  .big:active { transform: translateY(4px) scale(0.94); box-shadow: none; }
+  .big svg { width: 34px; height: 34px; fill: var(--ink); }
+  .big.alt { background: var(--white); box-shadow: 0 4px 0 #D9CDB6; }
+  .tiny {
+    position: relative; width: 36px; height: 36px; border-radius: 50%; border: 0; background: transparent;
+    font-size: 15px; opacity: 0.4; cursor: pointer; touch-action: none;
+  }
+  .tiny.holding { opacity: 1; background: var(--line); }
+  #after { display: flex; align-items: center; gap: 16px; padding: 0 16px 12px; }
+  #talk { margin: 0; font-size: 14px; color: var(--slate); -webkit-user-select: text; user-select: text; }
+  .shelf { padding: 0 16px 24px; scroll-margin-top: 8px; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  @media (orientation: landscape) { .grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (orientation: landscape) and (max-height: 560px) {
+    .playrow { display: flex; align-items: stretch; }
+    .stage { flex: 1 1 auto; width: auto; aspect-ratio: auto; height: calc(100vh - 48px); height: calc(100dvh - 48px); max-height: none; }
+    .controls { flex: 0 0 104px; flex-direction: column; height: auto; gap: 14px; }
+    .shelf { padding-top: 8px; }
   }
 
-  .panel {
-    background: var(--white);
-    margin: 24px 16px;
-    border-radius: 24px;
-    padding: 20px;
-  }
-  .panel h2 { margin: 0 0 4px; font-size: 22px; font-weight: 700; }
-  .panel .sub { margin: 0 0 12px; color: var(--slate); font-size: 14px; }
-  .row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 8px 0; }
-  .row label { display: flex; align-items: center; gap: 10px; min-height: 44px; }
-  .row input[type="checkbox"] { width: 24px; height: 24px; accent-color: var(--indigo); }
-  input[type="text"], textarea {
-    width: 100%;
-    font: inherit;
-    color: var(--ink);
-    border: 2px solid var(--line);
-    border-radius: 12px;
-    padding: 10px 12px;
-    background: var(--white);
-  }
-  textarea { min-height: 76px; resize: vertical; }
+  /* ---------- Goodbye and problem ---------- */
+  .center { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px; position: relative; }
+  .center .lock { position: absolute; right: 12px; top: 6px; }
+  .sun { width: 180px; height: 180px; animation: wave 2.4s ease-in-out infinite; transform-origin: 50% 60%; }
+  @keyframes wave { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
+  .byeline { font-family: "Baloo 2", sans-serif; font-weight: 700; font-size: 34px; margin: 12px 0 0; }
+  .bigemoji { font-size: 96px; }
+
+  /* ---------- Parent gate and area ---------- */
+  .wrap { max-width: 640px; margin: 0 auto; padding: 16px; -webkit-user-select: text; user-select: text; }
+  .panel { background: var(--white); border-radius: 24px; padding: 20px; margin: 0 0 16px; }
+  .panel h2 { margin: 0 0 6px; font-size: 22px; font-weight: 700; }
+  .panel h3 { margin: 16px 0 4px; font-size: 17px; }
+  .sub { margin: 0 0 12px; color: var(--slate); font-size: 14px; }
   .btn {
-    font: inherit;
-    font-weight: 600;
-    min-height: 44px;
-    padding: 8px 16px;
-    border-radius: 22px;
-    border: 2px solid var(--ink);
-    background: var(--white);
-    color: var(--ink);
-    cursor: pointer;
+    font-weight: 600; min-height: 44px; padding: 8px 16px; border-radius: 22px;
+    border: 2px solid var(--ink); background: var(--white); color: var(--ink); cursor: pointer;
   }
+  .btn.solid { background: var(--ink); color: var(--white); }
+  .btn.warn { border-color: var(--coral); color: var(--coral); }
   .btn.on { background: var(--ink); color: var(--white); }
-  .q { border-top: 1px solid var(--line); padding: 14px 0; }
-  .q p { margin: 0 0 4px; font-weight: 600; }
-  .q small { display: block; color: var(--slate); margin-bottom: 8px; }
-  .opts { display: flex; gap: 8px; flex-wrap: wrap; }
-  .counts { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
-  .counts b { font-size: 18px; }
-  .log {
-    font-family: ui-monospace, Menlo, Consolas, monospace;
-    font-size: 12px;
-    background: #F7F1E4;
-    border-radius: 12px;
-    padding: 12px;
-    max-height: 220px;
-    overflow: auto;
-    white-space: pre-wrap;
-    word-break: break-word;
+  .btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .field { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); }
+  .field:first-of-type { border-top: 0; }
+  .field input[type="number"], .field input[type="time"], .field input[type="text"] {
+    width: 120px; font: inherit; color: var(--ink); border: 2px solid var(--line); border-radius: 12px; padding: 8px 10px; background: var(--white);
   }
-  .copy {
-    width: 100%;
-    min-height: 56px;
-    border: 0;
-    border-radius: 28px;
-    background: var(--mango);
-    box-shadow: 0 4px 0 var(--mango-dark);
-    color: var(--ink);
-    font-size: 20px;
-    font-weight: 700;
-    cursor: pointer;
-  }
-  .copy:active { transform: translateY(4px); box-shadow: none; }
-  #copyStatus { margin: 12px 0 0; font-weight: 600; min-height: 22px; }
-  #out { display: none; margin-top: 12px; min-height: 160px; font-size: 12px; }
-  #out.show { display: block; }
-  .field { margin-top: 12px; }
-  .field > span { display: block; font-weight: 600; margin-bottom: 4px; }
+  .field input[type="checkbox"] { width: 26px; height: 26px; accent-color: var(--indigo); }
+  textarea { width: 100%; min-height: 90px; font: inherit; font-size: 13px; color: var(--ink); border: 2px solid var(--line); border-radius: 12px; padding: 10px; }
+  pre.report { white-space: pre-wrap; word-break: break-word; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; background: #F7F1E4; border-radius: 12px; padding: 12px; margin: 8px 0; }
+  .keypad { display: grid; grid-template-columns: repeat(3, 72px); gap: 12px; justify-content: center; margin: 16px 0; }
+  .keypad button { height: 64px; border-radius: 18px; border: 2px solid var(--ink); background: var(--white); font-size: 24px; font-weight: 600; cursor: pointer; }
+  .dots { font-size: 28px; letter-spacing: 8px; min-height: 40px; }
+  .vid { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); }
+  .vid img { width: 80px; height: 45px; border-radius: 8px; object-fit: cover; flex: 0 0 auto; }
+  .vid .t { flex: 1 1 auto; font-size: 13px; line-height: 1.3; min-width: 0; }
+  .vid .t small { color: var(--slate); display: block; }
+  .vid button { min-height: 40px; min-width: 44px; padding: 4px 10px; border-radius: 20px; border: 2px solid var(--line); background: var(--white); cursor: pointer; }
+  .vid button.on { border-color: var(--ink); background: var(--ink); color: var(--white); }
+  .vid.blocked .t { text-decoration: line-through; color: var(--slate); }
+  .catrow { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-top: 1px solid var(--line); }
+  .msg { font-weight: 600; min-height: 22px; margin: 8px 0 0; }
 </style>
 </head>
 <body>
 
-<div class="topbar">
-  <span class="brand">Chhoti Duniya</span>
-  <span class="pill">Phase 0 test</span>
+<!-- HOME -->
+<div id="home" class="screen">
+  <div class="top">
+    <div><span class="brand">Chhoti Duniya</span><span class="hello" id="hello"></span></div>
+    <button class="lock" data-lock type="button" aria-label="Parents: press and hold">&#128274;</button>
+  </div>
+  <nav class="cats" id="cats"></nav>
+  <div class="row" id="row"></div>
 </div>
 
-<div class="warn" id="fileWarn">
-  This page was opened from phone storage. YouTube will not play here. Open it from the hosted https link instead.
+<!-- PLAYER -->
+<div id="play" class="screen" hidden>
+  <div class="playrow">
+    <div class="stage">
+      <div id="slot"><div id="yt"></div></div>
+      <div id="shield"></div>
+      <div id="cover" hidden><div class="disc">
+        <svg id="coverPlay" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+        <svg id="coverReplay" viewBox="0 0 24 24" aria-hidden="true" style="display:none"><path d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z"/></svg>
+      </div></div>
+    </div>
+    <div class="controls">
+      <button class="big" id="pp" type="button" aria-label="Play or pause">
+        <svg id="iconPlay" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+        <svg id="iconPause" viewBox="0 0 24 24" aria-hidden="true" style="display:none"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+      </button>
+      <button class="big alt" id="homeBtn" type="button" aria-label="Home">&#127968;</button>
+      <button class="tiny" id="peek" type="button" aria-label="Parents: hold to tap the video itself">&#9197;</button>
+    </div>
+  </div>
+  <div id="after" hidden><p id="talk"></p></div>
+  <section class="shelf" id="shelf"><div class="grid" id="shelfCards"></div></section>
 </div>
 
-<!-- 1. Player (YouTube's own embedded player, nothing placed over it) -->
-<div class="playrow">
-<div class="stage"><div id="playerSlot"><div id="yt"></div></div></div>
-
-<!-- 2. Our own buttons, beside the player -->
-<div class="controls">
-  <button class="big" id="playBtn" type="button" aria-label="Play or pause">
-    <svg id="iconPlay" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
-    <svg id="iconPause" viewBox="0 0 24 24" aria-hidden="true" style="display:none"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
-  </button>
-  <button class="big alt" id="shelfBtn" type="button" aria-label="Go to the cards">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg>
-  </button>
+<!-- GOODBYE -->
+<div id="bye" class="screen" hidden>
+  <div class="center">
+    <button class="lock" data-lock type="button" aria-label="Parents: press and hold">&#128274;</button>
+    <svg class="sun" viewBox="0 0 200 200" aria-hidden="true">
+      <g stroke="#FFB300" stroke-width="10" stroke-linecap="round">
+        <line x1="100" y1="12" x2="100" y2="32"/><line x1="100" y1="168" x2="100" y2="188"/>
+        <line x1="12" y1="100" x2="32" y2="100"/><line x1="168" y1="100" x2="188" y2="100"/>
+        <line x1="38" y1="38" x2="52" y2="52"/><line x1="148" y1="148" x2="162" y2="162"/>
+        <line x1="38" y1="162" x2="52" y2="148"/><line x1="148" y1="52" x2="162" y2="38"/>
+      </g>
+      <circle cx="100" cy="100" r="54" fill="#FFB300"/>
+      <circle cx="82" cy="92" r="6" fill="#33264A"/><circle cx="118" cy="92" r="6" fill="#33264A"/>
+      <path d="M78 112 Q100 134 122 112" stroke="#33264A" stroke-width="6" fill="none" stroke-linecap="round"/>
+    </svg>
+    <p class="byeline" id="byeline">Bye bye!</p>
+  </div>
 </div>
+
+<!-- PROBLEM -->
+<div id="oops" class="screen" hidden>
+  <div class="center">
+    <div class="bigemoji">&#127783;&#65039;</div>
+    <button class="big" id="retry" type="button" aria-label="Try again" style="margin-top:24px">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z"/></svg>
+    </button>
+  </div>
 </div>
 
-<!-- 3. Swipe-up shelf -->
-<section class="shelf" id="shelf">
-  <div class="cards" id="cards"></div>
-  <p class="shelf-note">Shelf: four test videos. These are for testing only and are not yet approved for the catalog.</p>
-</section>
+<!-- PARENT GATE -->
+<div id="gate" class="screen" hidden>
+  <div class="wrap" style="text-align:center">
+    <div class="panel">
+      <h2>For parents</h2>
+      <p class="sub">Type these numbers</p>
+      <p class="baloo" id="gateWords" style="font-size:24px;font-weight:700;margin:0"></p>
+      <div class="dots" id="gateDots"></div>
+      <div class="keypad" id="keypad"></div>
+      <button class="btn" id="gateBack" type="button">Back</button>
+    </div>
+  </div>
+</div>
 
-<!-- 4. Parent test panel -->
-<section class="panel">
-  <h2>Settings to try</h2>
-  <p class="sub">Changing a setting reloads the player.</p>
-  <div class="row">
-    <label><input type="checkbox" id="optHide"> Hide YouTube's own controls</label>
-  </div>
-  <div class="row">
-    <label><input type="checkbox" id="optPrivacy"> Privacy mode (youtube-nocookie.com)</label>
-  </div>
-  <div class="field">
-    <span>Test any other YouTube link</span>
-    <input type="text" id="ownLink" placeholder="Paste a YouTube link here" autocomplete="off" autocapitalize="off" spellcheck="false">
-    <div class="row"><button class="btn" id="ownPlay" type="button">Play this link</button></div>
-  </div>
-</section>
+<!-- PARENT AREA -->
+<div id="parent" class="screen" hidden>
+  <div class="wrap">
+    <div class="panel">
+      <h2>Parent area</h2>
+      <p class="sub" id="todayLine"></p>
+      <div class="btns">
+        <button class="btn solid" id="pClose" type="button">Back to the app</button>
+        <button class="btn" id="pMore" type="button">Give 5 more minutes</button>
+        <button class="btn" id="pOpen" type="button">Allow one session now</button>
+      </div>
+      <p class="msg" id="pMsg"></p>
+    </div>
 
-<section class="panel">
-  <h2>Checklist</h2>
-  <p class="sub">Answer what you see on your phone. About 10 minutes. Answers are saved on this phone as you go.</p>
-  <div class="counts">
-    <span>Videos started: <b id="playCount">0</b></span>
-    <span>Ads seen: <b id="adCount">0</b></span>
-    <button class="btn" id="adPlus" type="button">+1 ad</button>
-    <button class="btn" id="adMinus" type="button">-1</button>
-  </div>
-  <div id="questions"></div>
-  <div class="field">
-    <span>Anything else you noticed</span>
-    <textarea id="notes" placeholder="Optional"></textarea>
-  </div>
-</section>
+    <div class="panel">
+      <h2>Time rules</h2>
+      <div class="field"><label for="sCap">Daily cap (minutes)</label><input type="number" id="sCap" min="5" max="180" inputmode="numeric"></div>
+      <div class="field"><label for="sLen">Session length (minutes)</label><input type="number" id="sLen" min="5" max="60" inputmode="numeric"></div>
+      <div class="field"><label for="sNum">Sessions a day</label><input type="number" id="sNum" min="1" max="6" inputmode="numeric"></div>
+      <div class="field"><label for="sGap">Gap between sessions (minutes)</label><input type="number" id="sGap" min="0" max="600" inputmode="numeric"></div>
+      <div class="field"><label for="sCut">No viewing after</label><input type="time" id="sCut"></div>
+    </div>
 
-<section class="panel">
-  <h2>Videos for calibration</h2>
-  <p class="sub">Paste YouTube links, one per line. Up to 20 each. These tune the quality score before the real catalog is built.</p>
-  <div class="field">
-    <span>Videos you trust and would happily show her</span>
-    <textarea id="good" placeholder="One link per line"></textarea>
-  </div>
-  <div class="field">
-    <span>Videos you dislike and want kept out</span>
-    <textarea id="bad" placeholder="One link per line"></textarea>
-  </div>
-</section>
+    <div class="panel">
+      <h2>Preferences</h2>
+      <div class="field"><label for="sHi">Hindi share of the week (%)</label><input type="number" id="sHi" min="0" max="100" inputmode="numeric"></div>
+      <div class="field"><label for="sName">Greeting name (stays on this phone)</label><input type="text" id="sName" maxlength="20" autocomplete="off"></div>
+      <div class="field"><label for="sShield">Tap guard over the video</label><input type="checkbox" id="sShield"></div>
+      <p class="sub" style="margin-top:8px">The tap guard stops taps on the video from opening YouTube. It also blocks the "Skip ad" button. To skip an ad yourself, press and hold the small &#9197; button beside the video for one second; the guard lifts for 8 seconds.</p>
+      <div class="field"><label for="sWhy">Show why each card was picked</label><input type="checkbox" id="sWhy"></div>
+      <h3>Shelves</h3>
+      <div id="catToggles"></div>
+    </div>
 
-<section class="panel">
-  <h2>Player log</h2>
-  <p class="sub">Filled in automatically. It is included when you copy the results.</p>
-  <div class="log" id="log"></div>
-</section>
+    <div class="panel">
+      <h2>Weekly report</h2>
+      <pre class="report" id="report"></pre>
+      <div class="field"><label for="sWords">New words you heard from her this week</label><input type="number" id="sWords" min="0" max="999" inputmode="numeric"></div>
+      <div class="btns"><button class="btn solid" id="pCopy" type="button">Copy report</button></div>
+      <p class="msg" id="copyMsg"></p>
+      <textarea id="copyOut" hidden readonly></textarea>
+    </div>
 
-<section class="panel">
-  <button class="copy" id="copyBtn" type="button">Copy results</button>
-  <p id="copyStatus"></p>
-  <textarea id="out" readonly></textarea>
-</section>
+    <div class="panel">
+      <h2>Videos</h2>
+      <p class="sub">Thumbs up raises a video. Block removes it for good. "Block channel" removes every video from that channel.</p>
+      <div id="vidList"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Backup</h2>
+      <p class="sub">History and settings live only in this phone's browser. Copy the backup text somewhere safe; paste it back here to restore.</p>
+      <div class="btns">
+        <button class="btn" id="bCopy" type="button">Copy backup</button>
+        <button class="btn" id="bRestore" type="button">Restore from the box below</button>
+        <button class="btn warn" id="bReset" type="button">Erase all history</button>
+      </div>
+      <textarea id="bBox" placeholder="Paste backup text here to restore" style="margin-top:10px"></textarea>
+      <p class="msg" id="bMsg"></p>
+    </div>
+  </div>
+</div>
 
 <script>
 (function () {
   'use strict';
 
-  // Test videos only. Not an approved catalog.
-  var VIDEOS = [
-    { id: '_HC3v4dMafU', label: 'Hindi rhyme (Infobells Hindi)', lang: 'हिंदी', color: '#8E63CE' },
-    { id: 'sCZT-qqCEAg', label: 'Hindi varnamala (ChuChu TV Hindi)', lang: 'हिंदी', color: '#2F9BE6' },
-    { id: 'v-BvRlsbUiU', label: 'Colours song (Super Simple Songs)', lang: 'English', color: '#FF6F59' },
-    { id: 'wceMsYSyNUQ', label: 'Rainbow song (Super Simple Songs)', lang: 'English', color: '#17A398' }
-  ];
-
-  var QUESTIONS = [
-    { key: 'sound', text: 'Tap a card. Did the video start by itself, with sound?', hint: 'If you had to tap again inside the video, answer No.' },
-    { key: 'ads', text: 'Did an ad play before or during any video?', hint: 'Press "+1 ad" above each time you see one. Play at least 6 videos.' },
-    { key: 'swipe', text: 'Put your finger on the video and swipe up. Did the page move to the cards?', hint: 'This is the swipe she already uses in YouTube Kids.' },
-    { key: 'endslide', text: 'Let one video finish. Did the page slide to the cards by itself?', hint: '' },
-    { key: 'endsuggest', text: 'When that video finished, did YouTube show its own suggested videos inside the player?', hint: '' },
-    { key: 'leak', text: 'With "Hide YouTube\'s own controls" ticked, tap around inside the video. Did anything open YouTube or leave this page?', hint: 'Try the YouTube logo and the video title if you can see them.' },
-    { key: 'pin', text: 'Pin Chrome with Android app pinning, then tap the YouTube logo in the video. Did it still leave this page?', hint: 'In phone Settings, search for "App pinning" or "Pin windows" and switch it on first.' },
-    { key: 'landscape', text: 'Turn the phone sideways. Does the video fit, with the top of the cards peeking below it?', hint: '' }
-  ];
-  var CHOICES = ['Yes', 'No', 'Not sure'];
-
-  var STORE_KEY = 'cd_phase0_v1';
-  var state = { answers: {}, notes: '', good: '', bad: '', ads: 0, plays: 0, hide: true, privacy: false };
-  try {
-    var saved = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
-    if (saved && typeof saved === 'object') {
-      for (var k in state) { if (Object.prototype.hasOwnProperty.call(saved, k)) { state[k] = saved[k]; } }
-    }
-  } catch (e) { /* storage unavailable: carry on without it */ }
-
-  function save() {
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
-  }
-  function $(id) { return document.getElementById(id); }
-
-  // ---------- Log ----------
-  var lines = [];
-  function stamp() {
-    var d = new Date();
-    function p(n) { return (n < 10 ? '0' : '') + n; }
-    return p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
-  }
-  function log(msg) {
-    lines.push(stamp() + '  ' + msg);
-    if (lines.length > 80) { lines.shift(); }
-    var el = $('log');
-    el.textContent = lines.join('\n');
-    el.scrollTop = el.scrollHeight;
-  }
-
-  // ---------- Player ----------
-  var player = null;
-  var apiReady = false;
-  var ready = false;
-  var pendingId = null;
-  var currentId = VIDEOS[0].id;
-  var currentLabel = VIDEOS[0].label;
-  var tapAt = 0;
-  var STATES = { '-1': 'unstarted', '0': 'ended', '1': 'playing', '2': 'paused', '3': 'buffering', '5': 'cued' };
-  var ERRORS = {
-    '2': 'the video id is not valid',
-    '5': 'the video cannot play in this browser',
-    '100': 'the video was removed or is private',
-    '101': 'the owner does not allow embedding',
-    '150': 'the owner does not allow embedding',
-    '153': 'YouTube could not identify this page (missing referrer)'
+  /* =====================================================================
+     SETTINGS BLOCK: every weight, share and limit the engine uses.
+     ===================================================================== */
+  var CFG = {
+    version: '1.0.0',
+    weights: { quality: 0.30, subInterest: 0.30, videoInterest: 0.15, novelty: 0.15, balance: 0.10 },
+    repeatPenalty: 0.5,
+    ema: 0.2,                       // I_new = 0.8 * I_old + 0.2 * signal
+    interestMin: -1, interestMax: 1.5,
+    signal: { finish: 1.0, comeBack: 1.5, partial: 0, abandon: -1.0, thumbsUp: 2.0 },
+    finishAt: 0.8, abandonBelow: 0.25,
+    homeSlots: { fav: 4, bal: 2, fresh: 2 },
+    shelfSlots: { fav: 3, bal: 2, fresh: 1 },
+    maxPlaysPerDay: 2, maxRunChannel: 2, maxRunCategory: 2,
+    langTolerance: 10,
+    calmUnderSecs: 300,
+    fitSlackSecs: 30,
+    treatAfterCore: 2, treatPerDay: 1,
+    hideBelow: -0.6, hideAfterTries: 3, hideDays: 14,
+    levelUpFinishes: 8, levelUpDistinct: 4,
+    sessionIdleMins: 30,
+    extensionSecs: 300
   };
 
-  function setIcon(playing) {
-    $('iconPlay').style.display = playing ? 'none' : '';
-    $('iconPause').style.display = playing ? '' : 'none';
-  }
+  var CATS = [
+    { id: 1, name: 'Words and naming',        emoji: '🍎', color: '#FF6F59', share: 0.20 },
+    { id: 2, name: 'Rhymes and songs',        emoji: '🎵', color: '#8E63CE', share: 0.20 },
+    { id: 3, name: 'Early concepts',          emoji: '🔢', color: '#2F9BE6', share: 0.10 },
+    { id: 4, name: 'Stories',                 emoji: '📖', color: '#17A398', share: 0.12 },
+    { id: 5, name: 'Thinking',                emoji: '🧩', color: '#4C5FD5', share: 0.12 },
+    { id: 6, name: 'Create and do',           emoji: '🖍️', color: '#D6409F', share: 0.08 },
+    { id: 7, name: 'Real world',              emoji: '🐘', color: '#4CAF50', share: 0.08 },
+    { id: 8, name: 'Daily life and feelings', emoji: '🪥', color: '#FF8A3D', share: 0.05 },
+    { id: 9, name: 'Treat shelf',             emoji: '🍭', color: '#8D5A3B', share: 0.05 }
+  ];
+  var CAT = {}; CATS.forEach(function (c) { CAT[c.id] = c; });
 
-  function buildPlayer() {
-    if (!apiReady) { return; }
-    if (player && typeof player.destroy === 'function') {
-      try { player.destroy(); } catch (e) { /* ignore */ }
-    }
-    ready = false;
-    setIcon(false);
-    $('playerSlot').innerHTML = '<div id="yt"></div>';
-    var opts = {
-      width: '100%',
-      height: '100%',
-      videoId: currentId,
-      playerVars: {
-        playsinline: 1,
-        rel: 0,
-        fs: 0,
-        iv_load_policy: 3,
-        controls: state.hide ? 0 : 1,
-        origin: window.location.origin
-      },
-      events: { onReady: onReady, onStateChange: onStateChange, onError: onError }
+  // Talk-back prompts by subcategory: [Hindi, English]
+  var TALK = {
+    colours:  ['लाल कहाँ है? घर में कुछ लाल ढूँढो।', 'Where is red? Find something red at home.'],
+    animals:  ['गाय कैसे बोलती है? कुत्ता कैसे बोलता है?', 'What does the cow say? What does the dog say?'],
+    food:     ['तुम्हें कौन सा फल पसंद है?', 'Which fruit do you like?'],
+    body:     ['नाक कहाँ है? कान कहाँ हैं?', 'Where is your nose? Where are your ears?'],
+    vehicles: ['बस कैसे चलती है? आवाज़ निकालो।', 'How does the bus go? Make the sound.'],
+    family:   ['यह कौन है? मम्मी कहाँ हैं?', 'Who is this? Where is mummy?'],
+    rhymes:   ['चलो साथ में गाएँ। फिर से गाओ।', 'Let us sing it together. Sing it again.'],
+    action:   ['चलो साथ में करें। ताली बजाओ।', 'Let us do it together. Clap your hands.'],
+    calm:     ['आसमान में क्या है? तारे कहाँ हैं?', 'What is in the sky? Where are the stars?'],
+    counting: ['उँगलियाँ गिनो: एक, दो, तीन।', 'Count your fingers: one, two, three.'],
+    shapes:   ['गोल क्या है? गेंद कैसी है?', 'What is round? What shape is the ball?'],
+    letters:  ['अ से क्या? अ से अनार।', 'A is for? A is for apple.'],
+    opposites:['बड़ा कौन है? छोटा कौन है?', 'Which one is big? Which one is small?'],
+    stories:  ['कहानी में कौन था? फिर क्या हुआ?', 'Who was in the story? What happened next?'],
+    thinking: ['अब क्या आएगा? कौन सा अलग है?', 'What comes next? Which one is different?'],
+    create:   ['चलो हम भी बनाएँ। क्या बनाओगी?', 'Let us make one too. What will you make?'],
+    world:    ['यह क्या है? यह क्या कर रहा है?', 'What is this? What is it doing?'],
+    routines: ['हम ब्रश कब करते हैं? कैसे करते हैं?', 'When do we brush? Show me how.'],
+    feelings: ['तुम खुश हो? खुश चेहरा दिखाओ।', 'Are you happy? Show me a happy face.'],
+    treat:    ['इसमें क्या हुआ? मुझे बताओ।', 'What happened in it? Tell me.']
+  };
+
+  /* =====================================================================
+     CATALOG. Each entry: id, cat, sub, lang, level, secs, energy, q, ch, t
+     ===================================================================== */
+  var CATALOG = /*CATALOG_START*/[{"id":"Z_qvUJo3DiM","cat":1,"sub":"colours","lang":"hi","level":1,"secs":188,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Laal Hara Peela colours song"},
+    {"id":"X0M_e9Zblk8","cat":1,"sub":"colours","lang":"hi","level":1,"secs":291,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"I See Colours (Hindi)"},
+    {"id":"CxNSqSKwK_o","cat":1,"sub":"colours","lang":"hi","level":1,"secs":243,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Rainbow party colours song (Hindi)"},
+    {"id":"Ndk11X336z8","cat":1,"sub":"colours","lang":"hi","level":1,"secs":176,"energy":"medium","q":78,"ch":"Infobells Hindi","t":"Laal Laal Laal rang geet"},
+    {"id":"53Wj3VfkpxA","cat":1,"sub":"colours","lang":"hi","level":1,"secs":97,"energy":"medium","q":78,"ch":"Infobells Hindi","t":"Meri Topi Ka Rang Hai Peela"},
+    {"id":"wceMsYSyNUQ","cat":1,"sub":"colours","lang":"en","level":1,"secs":160,"energy":"medium","q":90,"ch":"Super Simple Songs","t":"The Rainbow Song"},
+    {"id":"aMTIm-D1l54","cat":1,"sub":"colours","lang":"en","level":1,"secs":120,"energy":"medium","q":90,"ch":"Super Simple Songs","t":"Red Yellow Green Blue"},
+    {"id":"jYAWf8Y91hA","cat":1,"sub":"colours","lang":"en","level":1,"secs":183,"energy":"medium","q":90,"ch":"Super Simple Songs","t":"I See Something Blue"},
+    {"id":"Asb8N0nz9OI","cat":1,"sub":"colours","lang":"en","level":1,"secs":184,"energy":"medium","q":90,"ch":"Super Simple Songs","t":"I See Something Pink"},
+    {"id":"zxIpA5nF_LY","cat":1,"sub":"colours","lang":"en","level":1,"secs":122,"energy":"medium","q":90,"ch":"Super Simple Songs","t":"What Is Your Favorite Color?"},
+    {"id":"0qO7uFmrz5Y","cat":1,"sub":"animals","lang":"hi","level":1,"secs":175,"energy":"medium","q":78,"ch":"Infobells Hindi","t":"Gaiya Meri: farm animal sounds"},
+    {"id":"S_fU1ys2iBg","cat":1,"sub":"animals","lang":"hi","level":1,"secs":112,"energy":"medium","q":78,"ch":"Infobells Hindi","t":"Jungle Jungle animal song"},
+    {"id":"FG9G0tw9peM","cat":1,"sub":"animals","lang":"hi","level":1,"secs":519,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Jungle song with wild animal names"},
+    {"id":"g9uHieWeWQE","cat":1,"sub":"animals","lang":"hi","level":1,"secs":230,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Zoo Friends song (Hindi)"},
+    {"id":"ysF3xbRknaQ","cat":1,"sub":"animals","lang":"hi","level":1,"secs":217,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Wheels on the Bus: farm animals (Hindi)"},
+    {"id":"zXEq-QO3xTg","cat":1,"sub":"animals","lang":"en","level":1,"secs":204,"energy":"medium","q":90,"ch":"Super Simple Songs","t":"The Animals On The Farm"},
+    {"id":"OwRmivbNgQk","cat":1,"sub":"animals","lang":"en","level":1,"secs":240,"energy":"lively","q":90,"ch":"Super Simple Songs","t":"Let Us Go To The Zoo"},
+    {"id":"5oYKonYBujg","cat":1,"sub":"animals","lang":"en","level":1,"secs":210,"energy":"medium","q":90,"ch":"Super Simple Songs","t":"Old MacDonald Had A Farm"},
+    {"id":"uZrFDgO0sMQ","cat":1,"sub":"animals","lang":"en","level":1,"secs":151,"energy":"medium","q":90,"ch":"Super Simple Songs","t":"If I Were a Duck: animal sounds"},
+    {"id":"pWepfJ-8XU0","cat":1,"sub":"animals","lang":"en","level":1,"secs":145,"energy":"medium","q":90,"ch":"Super Simple Songs","t":"I Have A Pet"},
+    {"id":"GoSq-yZcJ-4","cat":1,"sub":"animals","lang":"en","level":1,"secs":205,"energy":"lively","q":90,"ch":"Super Simple Songs","t":"Walking In The Jungle"},
+    {"id":"p8omFrIPdVQ","cat":1,"sub":"food","lang":"hi","level":1,"secs":402,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Yes Yes Fruits song (Hindi)"},
+    {"id":"cmcUUwfTSx0","cat":1,"sub":"food","lang":"hi","level":1,"secs":302,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Fruit Friends song (Hindi)"},
+    {"id":"frN3nvhIHUk","cat":1,"sub":"food","lang":"en","level":1,"secs":163,"energy":"medium","q":91,"ch":"Super Simple Songs","t":"Do You Like Broccoli Ice Cream?"},
+    {"id":"9MZM5F-uFwg","cat":1,"sub":"body","lang":"hi","level":1,"secs":186,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Five Senses song (Hindi)"},
+    {"id":"eBVqcTEC3zQ","cat":1,"sub":"body","lang":"en","level":1,"secs":145,"energy":"medium","q":90,"ch":"Super Simple Songs","t":"One Little Finger"},
+    {"id":"WX8HmogNyCY","cat":1,"sub":"body","lang":"en","level":1,"secs":114,"energy":"lively","q":90,"ch":"Super Simple Songs","t":"Head Shoulders Knees and Toes"},
+    {"id":"kzQSmh-QUhg","cat":1,"sub":"vehicles","lang":"hi","level":1,"secs":148,"energy":"medium","q":78,"ch":"Infobells Hindi","t":"School Bus Aayi Pom Pom Pom"},
+    {"id":"jIc0tDqZpX4","cat":1,"sub":"vehicles","lang":"hi","level":1,"secs":142,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Wheels on the Bus (Hindi)"},
+    {"id":"XYtL9kRr7Lg","cat":1,"sub":"vehicles","lang":"hi","level":1,"secs":136,"energy":"medium","q":85,"ch":"Sesame Street India","t":"The Wheels on the Fire Truck (Hindi)"},
+    {"id":"_HC3v4dMafU","cat":1,"sub":"family","lang":"hi","level":1,"secs":98,"energy":"medium","q":78,"ch":"Infobells Hindi","t":"Mere Ghar Me Milta Hai Pyaar"},
+    {"id":"oXsmQy3hMXs","cat":1,"sub":"family","lang":"hi","level":1,"secs":164,"energy":"medium","q":78,"ch":"Infobells Hindi","t":"Mummy Mummy Mere Paas Aao"},
+    {"id":"xn09YpHzhQM","cat":1,"sub":"family","lang":"hi","level":1,"secs":187,"energy":"medium","q":78,"ch":"Infobells Hindi","t":"Papa Papa father song"},
+    {"id":"61bG1hs6Duc","cat":1,"sub":"family","lang":"hi","level":1,"secs":358,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Finger Family song (Hindi)"},
+    {"id":"_BltB-q3zNA","cat":2,"sub":"rhymes","lang":"hi","level":1,"secs":161,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Machli Jal Ki Rani Hai"},
+    {"id":"CxNQ8w_5Vg8","cat":2,"sub":"rhymes","lang":"hi","level":1,"secs":167,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Baa Baa Black Sheep (Hindi)"},
+    {"id":"yJkIJ5OcAdA","cat":2,"sub":"rhymes","lang":"hi","level":1,"secs":151,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Incy Wincy Spider (Hindi)"},
+    {"id":"bRX_k2uElZI","cat":2,"sub":"rhymes","lang":"hi","level":1,"secs":152,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Humpty Dumpty (Hindi)"},
+    {"id":"hOfUswapTJ8","cat":2,"sub":"rhymes","lang":"hi","level":1,"secs":170,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Hickory Dickory Dock (Hindi)"},
+    {"id":"E53vZJQhJjI","cat":2,"sub":"rhymes","lang":"hi","level":1,"secs":181,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Rain Rain Go Away (Hindi)"},
+    {"id":"GsIyqH8oDao","cat":2,"sub":"rhymes","lang":"hi","level":1,"secs":179,"energy":"medium","q":78,"ch":"Infobells Hindi","t":"Bandar Mama Pahan Pajama"},
+    {"id":"71Xe1JqnGAE","cat":2,"sub":"rhymes","lang":"hi","level":1,"secs":182,"energy":"medium","q":78,"ch":"Infobells Hindi","t":"Aloo Kachaloo Beta Kahan Gaye The"},
+    {"id":"MHjaCfDh_Mk","cat":2,"sub":"rhymes","lang":"hi","level":1,"secs":153,"energy":"medium","q":78,"ch":"Infobells Hindi","t":"Kalu Madari Aaya"},
+    {"id":"9mmF8zOlh_g","cat":2,"sub":"rhymes","lang":"en","level":1,"secs":166,"energy":"medium","q":88,"ch":"Super Simple Songs","t":"BINGO"},
+    {"id":"bne3Ix_tJL8","cat":2,"sub":"rhymes","lang":"en","level":1,"secs":144,"energy":"medium","q":88,"ch":"Super Simple Songs","t":"The Eensy Weensy Spider"},
+    {"id":"YE7PiTwhTQk","cat":2,"sub":"rhymes","lang":"en","level":1,"secs":177,"energy":"medium","q":88,"ch":"Super Simple Songs","t":"Mary Had A Little Lamb"},
+    {"id":"HGgsklW-mtg","cat":2,"sub":"rhymes","lang":"en","level":1,"secs":182,"energy":"medium","q":88,"ch":"Super Simple Songs","t":"Hickory Dickory Dock"},
+    {"id":"hlzvrEfyL2Y","cat":2,"sub":"rhymes","lang":"en","level":1,"secs":151,"energy":"medium","q":88,"ch":"Super Simple Songs","t":"Mr. Golden Sun"},
+    {"id":"GR2o6k8aPlI","cat":2,"sub":"rhymes","lang":"en","level":1,"secs":190,"energy":"medium","q":88,"ch":"Super Simple Songs","t":"Baby Shark"},
+    {"id":"LFrKYjrIDs8","cat":2,"sub":"rhymes","lang":"en","level":1,"secs":156,"energy":"medium","q":88,"ch":"Super Simple Songs","t":"Rain Rain Go Away"},
+    {"id":"VsgpUHUYuJI","cat":2,"sub":"action","lang":"en","level":1,"secs":203,"energy":"lively","q":91,"ch":"Super Simple Songs","t":"Move! dance song"},
+    {"id":"hW2DDGX7Tcc","cat":2,"sub":"action","lang":"en","level":1,"secs":107,"energy":"lively","q":91,"ch":"Super Simple Songs","t":"Follow Me"},
+    {"id":"fN1Cyr0ZK9M","cat":2,"sub":"action","lang":"en","level":1,"secs":92,"energy":"lively","q":91,"ch":"Super Simple Songs","t":"Hello Hello! Can You Clap Your Hands?"},
+    {"id":"fPMjnlTEZwU","cat":2,"sub":"action","lang":"en","level":1,"secs":112,"energy":"lively","q":91,"ch":"Super Simple Songs","t":"Walking Walking"},
+    {"id":"l4WNrvVjiTw","cat":2,"sub":"action","lang":"en","level":1,"secs":124,"energy":"lively","q":91,"ch":"Super Simple Songs","t":"If You Are Happy"},
+    {"id":"3zm5JMGIsRU","cat":2,"sub":"action","lang":"en","level":1,"secs":179,"energy":"lively","q":91,"ch":"Super Simple Songs","t":"Baby Elephant: get up and move"},
+    {"id":"GukdT4gUlZs","cat":2,"sub":"action","lang":"en","level":1,"secs":180,"energy":"lively","q":91,"ch":"Super Simple Songs","t":"Wag Your Tail"},
+    {"id":"h7nxDVK8nhk","cat":2,"sub":"action","lang":"hi","level":1,"secs":187,"energy":"lively","q":85,"ch":"Sesame Street India","t":"If You Are Happy and You Know It (Hindi)"},
+    {"id":"ivZ2MOT0Z5o","cat":2,"sub":"action","lang":"hi","level":1,"secs":126,"energy":"lively","q":85,"ch":"Sesame Street India","t":"Cookie Shark (Hindi)"},
+    {"id":"hWp-CruPRUw","cat":2,"sub":"action","lang":"hi","level":1,"secs":192,"energy":"lively","q":80,"ch":"ChuChu TV Hindi","t":"Baby Shark (Hindi)"},
+    {"id":"yCjJyiqpAuU","cat":2,"sub":"calm","lang":"en","level":1,"secs":154,"energy":"calm","q":88,"ch":"Super Simple Songs","t":"Twinkle Twinkle Little Star"},
+    {"id":"OKbpLQp509Y","cat":2,"sub":"calm","lang":"en","level":1,"secs":188,"energy":"calm","q":88,"ch":"Super Simple Songs","t":"Sweet Dreams goodnight song"},
+    {"id":"7otAJa3jui8","cat":2,"sub":"calm","lang":"en","level":1,"secs":122,"energy":"calm","q":88,"ch":"Super Simple Songs","t":"Row Row Row Your Boat"},
+    {"id":"tbbKjDjMDok","cat":2,"sub":"calm","lang":"en","level":1,"secs":169,"energy":"calm","q":88,"ch":"Super Simple Songs","t":"Little Snowflake"},
+    {"id":"ug1pI-Ephns","cat":2,"sub":"calm","lang":"en","level":1,"secs":148,"energy":"calm","q":88,"ch":"Super Simple Songs","t":"Skidamarink"},
+    {"id":"6NSE_7rP2Wg","cat":2,"sub":"calm","lang":"hi","level":1,"secs":224,"energy":"calm","q":80,"ch":"ChuChu TV Hindi","t":"Jagmag Jagmag Chhote Taare (stargazing)"},
+    {"id":"xlxIgkeUzfg","cat":2,"sub":"calm","lang":"hi","level":1,"secs":309,"energy":"calm","q":80,"ch":"ChuChu TV Hindi","t":"Twinkle Twinkle Little Star (Hindi)"},
+    {"id":"Km3tqza7C8E","cat":2,"sub":"calm","lang":"hi","level":1,"secs":404,"energy":"calm","q":80,"ch":"ChuChu TV Hindi","t":"Lori geet: bedtime song (Hindi)"},
+    {"id":"GwYXMliCKvY","cat":3,"sub":"counting","lang":"hi","level":1,"secs":245,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Ten in the Bed (Hindi number rhyme)"},
+    {"id":"V7McjY3FOLI","cat":3,"sub":"counting","lang":"hi","level":1,"secs":234,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Five Little Monkeys (Hindi)"},
+    {"id":"q8EmMmetonQ","cat":3,"sub":"counting","lang":"hi","level":1,"secs":155,"energy":"medium","q":85,"ch":"Sesame Street India","t":"Five Little Ducks (Hindi)"},
+    {"id":"pTLtcno5_cY","cat":3,"sub":"counting","lang":"en","level":1,"secs":119,"energy":"medium","q":90,"ch":"Super Simple Songs","t":"Seven Steps"},
+    {"id":"xNw1SSz18Gg","cat":3,"sub":"counting","lang":"en","level":1,"secs":182,"energy":"medium","q":90,"ch":"Super Simple Songs","t":"How Many Fingers?"},
+    {"id":"pZw9veQ76fo","cat":3,"sub":"counting","lang":"en","level":1,"secs":174,"energy":"medium","q":90,"ch":"Super Simple Songs","t":"Five Little Ducks"},
+    {"id":"VNRNAloCb5Y","cat":3,"sub":"counting","lang":"en","level":1,"secs":127,"energy":"medium","q":90,"ch":"Super Simple Songs","t":"10 Little Airplanes"},
+    {"id":"Aq4UAss33qA","cat":3,"sub":"counting","lang":"en","level":1,"secs":92,"energy":"lively","q":90,"ch":"Super Simple Songs","t":"Count And Move"},
+    {"id":"zQ5bQ6tjl_M","cat":3,"sub":"counting","lang":"en","level":1,"secs":217,"energy":"lively","q":90,"ch":"Super Simple Songs","t":"Stomp! Count to five"},
+    {"id":"Vr-L6q4vbWU","cat":3,"sub":"counting","lang":"en","level":1,"secs":96,"energy":"medium","q":90,"ch":"Super Simple Songs","t":"The Bananas Song"},
+    {"id":"ZhODBFQ2-bQ","cat":3,"sub":"counting","lang":"en","level":1,"secs":130,"energy":"medium","q":90,"ch":"Super Simple Songs","t":"Five Little Monkeys"},
+    {"id":"TJhfl5vdxp4","cat":3,"sub":"shapes","lang":"en","level":1,"secs":251,"energy":"medium","q":90,"ch":"Super Simple Songs","t":"The Shape Song 1"},
+    {"id":"03pyY9C2Pm8","cat":3,"sub":"shapes","lang":"en","level":2,"secs":251,"energy":"medium","q":90,"ch":"Super Simple Songs","t":"The Shape Song 2"},
+    {"id":"hDqWTltrGJ8","cat":3,"sub":"shapes","lang":"en","level":1,"secs":175,"energy":"medium","q":90,"ch":"Super Simple Songs","t":"Shapes I See At The Beach"},
+    {"id":"TM83zp1AkUM","cat":3,"sub":"letters","lang":"hi","level":1,"secs":190,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"A Se Anar: Hindi varnamala geet"},
+    {"id":"Jp5QHUOl13g","cat":3,"sub":"letters","lang":"hi","level":1,"secs":242,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"A Se Amrud: Hindi varnamala geet"},
+    {"id":"h4hJyaMhjdg","cat":3,"sub":"letters","lang":"hi","level":2,"secs":251,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Ka Se Kamal: Hindi varnamala geet 2"},
+    {"id":"vD98OvvDNEs","cat":3,"sub":"letters","lang":"en","level":1,"secs":185,"energy":"medium","q":88,"ch":"Super Simple Songs","t":"The Alphabet Song"},
+    {"id":"kDdg2M1_EuE","cat":3,"sub":"letters","lang":"en","level":1,"secs":125,"energy":"medium","q":88,"ch":"Super Simple Songs","t":"The Alphabet Is So Much Fun"},
+    {"id":"RNUZBHlRH4Y","cat":3,"sub":"opposites","lang":"en","level":1,"secs":148,"energy":"medium","q":91,"ch":"Super Simple Songs","t":"Open Shut Them: opposites"},
+    {"id":"3DbOz9XF6nc","cat":4,"sub":"stories","lang":"hi","level":2,"secs":381,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"First Day of School (Hindi)"},
+    {"id":"J8C_5MneGwg","cat":4,"sub":"stories","lang":"hi","level":2,"secs":267,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Picnic at Home (Hindi)"},
+    {"id":"DBk7s6tz3Zg","cat":4,"sub":"stories","lang":"hi","level":2,"secs":395,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Yatra Ka Gaana: travelling song"},
+    {"id":"9CtuEOPE-aE","cat":4,"sub":"stories","lang":"hi","level":2,"secs":280,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Baby Goes Fishing (Hindi)"},
+    {"id":"P3LpU0Meb9k","cat":4,"sub":"stories","lang":"hi","level":2,"secs":270,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Baby goes to Old MacDonald farm (Hindi)"},
+    {"id":"eE_kuS294HU","cat":4,"sub":"stories","lang":"hi","level":2,"secs":348,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Circus song (Hindi)"},
+    {"id":"EULQrI3aVik","cat":5,"sub":"thinking","lang":"en","level":1,"secs":94,"energy":"medium","q":92,"ch":"Super Simple Songs","t":"Mystery Box 1: what is inside?"},
+    {"id":"4pfuapihZhI","cat":5,"sub":"thinking","lang":"en","level":1,"secs":94,"energy":"medium","q":92,"ch":"Super Simple Songs","t":"Mystery Box 2: what is inside?"},
+    {"id":"Bd1yjm_zopI","cat":5,"sub":"thinking","lang":"en","level":1,"secs":94,"energy":"medium","q":92,"ch":"Super Simple Songs","t":"Mystery Box 3: what is inside?"},
+    {"id":"Tt_S9qoupAk","cat":5,"sub":"thinking","lang":"en","level":1,"secs":194,"energy":"medium","q":92,"ch":"Super Simple Songs","t":"Hide And Seek"},
+    {"id":"OzKY5YHnOTg","cat":5,"sub":"thinking","lang":"en","level":1,"secs":123,"energy":"medium","q":92,"ch":"Super Simple Songs","t":"Who Took The Cookie?"},
+    {"id":"YVgv1EFJZHc","cat":5,"sub":"thinking","lang":"en","level":1,"secs":193,"energy":"medium","q":92,"ch":"Super Simple Songs","t":"What Do You Hear? guess the animal"},
+    {"id":"PmpJzVCIisc","cat":5,"sub":"thinking","lang":"en","level":1,"secs":181,"energy":"medium","q":92,"ch":"Super Simple Songs","t":"There Is An Animal That I See"},
+    {"id":"ddDN30evKPc","cat":5,"sub":"thinking","lang":"en","level":1,"secs":152,"energy":"medium","q":92,"ch":"Super Simple Songs","t":"Do You Like Spaghetti Yogurt?"},
+    {"id":"gCaiWovBbQs","cat":5,"sub":"thinking","lang":"hi","level":1,"secs":110,"energy":"medium","q":88,"ch":"Sesame Street India","t":"Peek-A-Boo with Elmo (Hindi)"},
+    {"id":"i3WrZ2GdLxc","cat":5,"sub":"thinking","lang":"hi","level":1,"secs":159,"energy":"medium","q":81,"ch":"Infobells Hindi","t":"Dada-Dadi Ka Ghar: hide and seek"},
+    {"id":"AlB6ZNqykXU","cat":6,"sub":"create","lang":"en","level":1,"secs":151,"energy":"medium","q":90,"ch":"Super Simple Songs","t":"I Like To Draw: colours and shapes"},
+    {"id":"3noL0nBOD4M","cat":6,"sub":"create","lang":"en","level":1,"secs":110,"energy":"medium","q":90,"ch":"Super Simple Songs","t":"Rock Scissors Paper 2: finger play"},
+    {"id":"lvI12tC7zro","cat":6,"sub":"create","lang":"en","level":1,"secs":114,"energy":"medium","q":90,"ch":"Super Simple Songs","t":"Rock Scissors Paper 3: finger play"},
+    {"id":"JRMAptlBgTk","cat":6,"sub":"create","lang":"en","level":1,"secs":130,"energy":"lively","q":90,"ch":"Super Simple Songs","t":"We All Fall Down: walk around the circle"},
+    {"id":"JV-D_K4drsA","cat":6,"sub":"create","lang":"en","level":1,"secs":205,"energy":"lively","q":90,"ch":"Super Simple Songs","t":"The Pinocchio dance"},
+    {"id":"CahSfDVu5zs","cat":6,"sub":"create","lang":"hi","level":1,"secs":219,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Cake Banao: pat a cake (Hindi)"},
+    {"id":"rD6FRDd9Hew","cat":7,"sub":"world","lang":"en","level":1,"secs":127,"energy":"medium","q":88,"ch":"Super Simple Songs","t":"How Is The Weather?"},
+    {"id":"7SxqpsDI2ho","cat":7,"sub":"world","lang":"en","level":1,"secs":171,"energy":"calm","q":88,"ch":"Super Simple Songs","t":"Little Birdie"},
+    {"id":"EO1GV4qUxgE","cat":7,"sub":"world","lang":"en","level":2,"secs":153,"energy":"medium","q":88,"ch":"Super Simple Songs","t":"8 Little Planets"},
+    {"id":"prZkKDj_qj4","cat":7,"sub":"world","lang":"hi","level":1,"secs":163,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Bahar Khelo: play outside (Hindi)"},
+    {"id":"5MjPmBtenvY","cat":7,"sub":"world","lang":"hi","level":1,"secs":146,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"The Beach song (Hindi)"},
+    {"id":"DDszwyYq7tQ","cat":7,"sub":"world","lang":"hi","level":1,"secs":274,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Baby Goes Swimming (Hindi)"},
+    {"id":"GjUxiTEcWTw","cat":7,"sub":"world","lang":"hi","level":1,"secs":87,"energy":"medium","q":78,"ch":"Infobells Hindi","t":"I Love India"},
+    {"id":"fQENf-0K60I","cat":8,"sub":"routines","lang":"hi","level":1,"secs":80,"energy":"medium","q":78,"ch":"Infobells Hindi","t":"Brush Karo Brush Karo"},
+    {"id":"0zLWoXoMD20","cat":8,"sub":"routines","lang":"hi","level":1,"secs":182,"energy":"medium","q":78,"ch":"Infobells Hindi","t":"Time to bath: clean up song (Hindi)"},
+    {"id":"D8Wmi1EA7vg","cat":8,"sub":"routines","lang":"hi","level":1,"secs":119,"energy":"medium","q":78,"ch":"Infobells Hindi","t":"Lalaji bathtime: save water"},
+    {"id":"jLvxa0k-n7g","cat":8,"sub":"routines","lang":"hi","level":1,"secs":181,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Bath song: Chalo Nahayein"},
+    {"id":"HIPMdP1g0BY","cat":8,"sub":"routines","lang":"hi","level":1,"secs":234,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Brush my teeth song (Hindi)"},
+    {"id":"wCio_xVlgQ0","cat":8,"sub":"routines","lang":"en","level":1,"secs":135,"energy":"medium","q":90,"ch":"Super Simple Songs","t":"Brush Your Teeth"},
+    {"id":"4XLQpRI_wOQ","cat":8,"sub":"routines","lang":"en","level":1,"secs":139,"energy":"medium","q":90,"ch":"Super Simple Songs","t":"This Is The Way"},
+    {"id":"HVYXHMY7wvo","cat":8,"sub":"routines","lang":"en","level":1,"secs":137,"energy":"medium","q":90,"ch":"Super Simple Songs","t":"The Bath Song"},
+    {"id":"SFE0mMWbA-Y","cat":8,"sub":"routines","lang":"en","level":1,"secs":110,"energy":"medium","q":90,"ch":"Super Simple Songs","t":"Clean Up Song"},
+    {"id":"-jBfb33_KHU","cat":8,"sub":"routines","lang":"en","level":1,"secs":182,"energy":"medium","q":90,"ch":"Super Simple Songs","t":"Put On Your Shoes"},
+    {"id":"PraN5ZoSjiY","cat":8,"sub":"routines","lang":"en","level":1,"secs":121,"energy":"calm","q":90,"ch":"Super Simple Songs","t":"Bye Bye Goodbye"},
+    {"id":"f-8CiTDW6lM","cat":8,"sub":"feelings","lang":"hi","level":1,"secs":226,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Care and Share song (Hindi)"},
+    {"id":"4-2Yi5QHK9E","cat":8,"sub":"feelings","lang":"hi","level":1,"secs":227,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Helping Mommy song (Hindi)"},
+    {"id":"OIlgG6wKHGg","cat":8,"sub":"feelings","lang":"hi","level":1,"secs":245,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Hello song (Hindi)"},
+    {"id":"4dCIPVXSKtw","cat":8,"sub":"feelings","lang":"hi","level":1,"secs":306,"energy":"medium","q":80,"ch":"ChuChu TV Hindi","t":"Stay Safe song (Hindi)"},
+    {"id":"VvJJeqVo3vk","cat":8,"sub":"feelings","lang":"en","level":1,"secs":103,"energy":"calm","q":90,"ch":"Super Simple Songs","t":"I Like You"},
+    {"id":"nLOZFYTAMuM","cat":9,"sub":"treat","lang":"hi","level":1,"secs":481,"energy":"lively","q":60,"ch":"Vlad and Niki Hindi","t":"Vlad and Niki: shapes at the giant house"},
+    {"id":"nQA3YP1Qgjo","cat":9,"sub":"treat","lang":"hi","level":1,"secs":561,"energy":"lively","q":60,"ch":"Vlad and Niki Hindi","t":"Vlad and Niki: toy monster truck ride"},
+    {"id":"cWBRtXrmJeE","cat":9,"sub":"treat","lang":"hi","level":1,"secs":485,"energy":"lively","q":60,"ch":"Vlad and Niki Hindi","t":"Vlad and Niki: four colours playhouse"},
+    {"id":"PVbZJOeszhc","cat":9,"sub":"treat","lang":"hi","level":1,"secs":320,"energy":"lively","q":60,"ch":"Vlad and Niki Hindi","t":"Vlad and Niki: travel stories"},
+    {"id":"nqycusOAVMA","cat":9,"sub":"treat","lang":"hi","level":1,"secs":536,"energy":"lively","q":60,"ch":"Vlad and Niki Hindi","t":"Vlad and Niki: fun and useful stories"}]/*CATALOG_END*/;
+  var BYID = {}; CATALOG.forEach(function (v) { BYID[v.id] = v; });
+
+  /* ---------- State ---------- */
+  var KEY = 'cd_v1';
+  function fresh() {
+    return {
+      v: 1,
+      set: { cap: 60, len: 20, num: 3, gap: 120, cut: '19:30', hi: 60, name: '', shield: true, why: false, catsOff: {} },
+      hist: {}, subI: {}, days: {}, recent: [], block: {}, blockCh: {}, like: {}, hide: {}, done: {}, errs: {}, words: {}
     };
-    if (state.privacy) { opts.host = 'https://www.youtube-nocookie.com'; }
-    player = new window.YT.Player('yt', opts);
-    log('Player built. YouTube controls ' + (state.hide ? 'hidden' : 'shown') + ', privacy mode ' + (state.privacy ? 'on' : 'off') + '.');
   }
-
-  function onReady() {
-    ready = true;
-    log('Player ready.');
-    if (pendingId) {
-      var id = pendingId;
-      pendingId = null;
-      player.loadVideoById(id);
+  var S = fresh();
+  try {
+    var raw = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (raw && raw.v === 1) { S = merge(fresh(), raw); }
+  } catch (e) { /* no storage: run without history */ }
+  function merge(base, extra) {
+    for (var k in extra) {
+      if (!Object.prototype.hasOwnProperty.call(extra, k)) { continue; }
+      if (k === 'set' && extra.set && typeof extra.set === 'object') {
+        for (var s in extra.set) { if (Object.prototype.hasOwnProperty.call(extra.set, s)) { base.set[s] = extra.set[s]; } }
+      } else { base[k] = extra[k]; }
     }
+    return base;
   }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* ignore */ } }
+  function $(id) { return document.getElementById(id); }
+  function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
 
-  function onStateChange(e) {
-    var name = STATES[String(e.data)] || ('state ' + e.data);
-    log('State: ' + name);
-    if (e.data === 1) {
-      setIcon(true);
-      if (tapAt) {
-        var secs = ((Date.now() - tapAt) / 1000).toFixed(1);
-        var muted = 'unknown';
-        try { muted = player.isMuted() ? 'yes' : 'no'; } catch (err) { /* ignore */ }
-        log('Started ' + secs + ' s after the tap. Muted: ' + muted + '.');
-        tapAt = 0;
-        state.plays += 1;
-        save();
-        renderCounts();
-      }
-    } else if (e.data === 2 || e.data === 0) {
-      setIcon(false);
+  /* ---------- Days, sessions, time ---------- */
+  function dkey(d) {
+    d = d || new Date();
+    function p(n) { return (n < 10 ? '0' : '') + n; }
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  }
+  function day() {
+    var k = dkey();
+    if (!S.days[k]) { S.days[k] = { secs: 0, sess: [], cat: {}, lang: { hi: 0, en: 0 }, treat: 0, core: 0, ext: 0, pass: 0, over: 0, plays: {} }; pruneDays(); }
+    return S.days[k];
+  }
+  function pruneDays() {
+    var keys = Object.keys(S.days).sort();
+    while (keys.length > 40) { delete S.days[keys.shift()]; }
+  }
+  function curSession() {
+    var d = day(), s = d.sess[d.sess.length - 1];
+    if (s && !s.end) {
+      if (Date.now() - s.last > CFG.sessionIdleMins * 60000) { s.end = s.last; save(); return null; }
+      return s;
     }
-    if (e.data === 0) {
-      log('Video ended. Sliding to the shelf.');
-      $('shelf').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return null;
+  }
+  function sessionLeft(s) { return S.set.len * 60 + (s.ext || 0) - s.secs; }
+  function dayLeft() { var d = day(); return S.set.cap * 60 + d.ext - d.secs; }
+  function pastCutoff() {
+    var m = /^(\d{1,2}):(\d{2})$/.exec(S.set.cut || '');
+    if (!m) { return false; }
+    var n = new Date();
+    return n.getHours() * 60 + n.getMinutes() >= (+m[1]) * 60 + (+m[2]);
+  }
+  // How many seconds she may still watch right now (0 means closed).
+  function remaining() {
+    var d = day(), s = curSession();
+    if (s) { return Math.max(0, Math.min(sessionLeft(s), dayLeft())); }
+    if (dayLeft() < 60) { return 0; }
+    if (d.pass > 0) { return Math.min(S.set.len * 60, dayLeft()); }
+    if (pastCutoff()) { return 0; }
+    if (d.sess.length >= S.set.num) { return 0; }
+    var last = d.sess[d.sess.length - 1];
+    if (last && last.end && Date.now() - last.end < S.set.gap * 60000) { return 0; }
+    return Math.min(S.set.len * 60, dayLeft());
+  }
+  function doneForToday() {
+    var d = day();
+    return dayLeft() < 60 || pastCutoff() || d.sess.length >= S.set.num;
+  }
+  function endSession() {
+    var s = curSession();
+    if (s) { s.end = Date.now(); save(); }
+  }
+  function addSecond(v) {
+    var d = day(), s = curSession();
+    if (!s) {
+      s = { start: Date.now(), secs: 0, last: Date.now(), end: 0, ext: 0, cats: {} };
+      d.sess.push(s);
+      if (d.pass > 0) { d.pass -= 1; }
     }
+    s.secs += 1; s.last = Date.now(); d.secs += 1;
+    d.cat[v.cat] = (d.cat[v.cat] || 0) + 1;
+    s.cats[v.cat] = (s.cats[v.cat] || 0) + 1;
+    d.lang[v.lang] = (d.lang[v.lang] || 0) + 1;
+    if (d.secs % 5 === 0) { save(); }
   }
 
-  function onError(e) {
-    var why = ERRORS[String(e.data)] || 'unknown reason';
-    log('ERROR ' + e.data + ': ' + why + ' (' + currentLabel + ')');
-  }
-
-  function playId(id, label) {
-    currentId = id;
-    currentLabel = label;
-    tapAt = Date.now();
-    log('Tap: ' + label + ' [' + id + ']');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    if (ready && player && typeof player.loadVideoById === 'function') {
-      player.loadVideoById(id);
-    } else {
-      pendingId = id;
-      log('Player not ready yet. The video will start when it is.');
+  /* ---------- Week statistics ---------- */
+  function lastDays(n) {
+    var out = [], now = new Date();
+    for (var i = 0; i < n; i++) {
+      var d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+      var k = dkey(d);
+      if (S.days[k]) { out.push({ key: k, d: S.days[k] }); }
     }
+    return out;
   }
-
-  window.onYouTubeIframeAPIReady = function () {
-    apiReady = true;
-    log('YouTube player script loaded.');
-    buildPlayer();
-  };
-
-  // ---------- Shelf ----------
-  function renderCards() {
-    var wrap = $('cards');
-    VIDEOS.forEach(function (v) {
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'card';
-      b.style.setProperty('--c', v.color);
-      b.setAttribute('aria-label', v.label);
-      var img = document.createElement('img');
-      img.src = 'https://i.ytimg.com/vi/' + v.id + '/hqdefault.jpg';
-      img.alt = '';
-      img.loading = 'lazy';
-      var tag = document.createElement('span');
-      tag.className = 'lang';
-      tag.textContent = v.lang;
-      b.appendChild(img);
-      b.appendChild(tag);
-      b.addEventListener('click', function () { playId(v.id, v.label); });
-      wrap.appendChild(b);
+  function weekStats() {
+    var cat = {}, lang = { hi: 0, en: 0 }, total = 0;
+    lastDays(7).forEach(function (x) {
+      for (var c in x.d.cat) { cat[c] = (cat[c] || 0) + x.d.cat[c]; total += x.d.cat[c]; }
+      lang.hi += x.d.lang.hi || 0; lang.en += x.d.lang.en || 0;
     });
+    return { cat: cat, lang: lang, total: total };
   }
-
-  // ---------- Checklist ----------
-  function renderQuestions() {
-    var wrap = $('questions');
-    QUESTIONS.forEach(function (q, i) {
-      var box = document.createElement('div');
-      box.className = 'q';
-      var p = document.createElement('p');
-      p.textContent = (i + 1) + '. ' + q.text;
-      box.appendChild(p);
-      if (q.hint) {
-        var s = document.createElement('small');
-        s.textContent = q.hint;
-        box.appendChild(s);
-      }
-      var opts = document.createElement('div');
-      opts.className = 'opts';
-      CHOICES.forEach(function (c) {
-        var b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'btn' + (state.answers[q.key] === c ? ' on' : '');
-        b.textContent = c;
-        b.addEventListener('click', function () {
-          state.answers[q.key] = c;
-          save();
-          Array.prototype.forEach.call(opts.children, function (o) {
-            o.className = 'btn' + (o.textContent === c ? ' on' : '');
-          });
-        });
-        opts.appendChild(b);
-      });
-      box.appendChild(opts);
-      wrap.appendChild(box);
+  function activeShares() {
+    // Shares renormalised over shelves that are switched on and have videos.
+    var have = {}, sum = 0, out = {};
+    CATALOG.forEach(function (v) { if (!S.block[v.id] && !S.blockCh[v.ch]) { have[v.cat] = true; } });
+    CATS.forEach(function (c) { if (have[c.id] && !S.set.catsOff[c.id]) { sum += c.share; } });
+    CATS.forEach(function (c) { out[c.id] = (have[c.id] && !S.set.catsOff[c.id] && sum > 0) ? c.share / sum : 0; });
+    return out;
+  }
+  function balanceNeed(w, shares) {
+    var need = {};
+    CATS.forEach(function (c) {
+      var target = shares[c.id];
+      if (!target) { need[c.id] = 0; return; }
+      var actual = w.total > 0 ? (w.cat[c.id] || 0) / w.total : 0;
+      need[c.id] = clamp((target - actual) / target, 0, 1);
     });
+    return need;
   }
-
-  function renderCounts() {
-    $('playCount').textContent = String(state.plays);
-    $('adCount').textContent = String(state.ads);
-  }
-
-  // ---------- Own link ----------
-  function parseId(text) {
-    var t = String(text || '').trim();
-    var m = t.match(/(?:v=|youtu\.be\/|\/shorts\/|\/embed\/|\/live\/)([A-Za-z0-9_-]{11})/);
-    if (m) { return m[1]; }
-    if (/^[A-Za-z0-9_-]{11}$/.test(t)) { return t; }
+  function lagLang(w) {
+    var tot = w.lang.hi + w.lang.en;
+    if (tot < 600) { return null; }                     // under 10 minutes of history: no steering yet
+    var hi = 100 * w.lang.hi / tot;
+    if (hi < S.set.hi - CFG.langTolerance) { return 'hi'; }
+    if (hi > S.set.hi + CFG.langTolerance) { return 'en'; }
     return null;
   }
 
-  // ---------- Results ----------
-  function buildResults() {
-    var out = [];
-    out.push('CHHOTI DUNIYA - PHASE 0 RESULTS');
-    out.push('When: ' + new Date().toString());
-    out.push('Page: ' + window.location.origin + window.location.pathname);
-    out.push('Device: ' + navigator.userAgent);
-    out.push('Screen: ' + window.innerWidth + ' x ' + window.innerHeight);
-    out.push('YouTube controls: ' + (state.hide ? 'hidden' : 'shown') + ' | Privacy mode: ' + (state.privacy ? 'on' : 'off'));
-    out.push('Videos started: ' + state.plays + ' | Ads seen: ' + state.ads);
-    out.push('');
-    QUESTIONS.forEach(function (q, i) {
-      out.push((i + 1) + '. ' + q.text);
-      out.push('   Answer: ' + (state.answers[q.key] || 'not answered'));
+  /* ---------- Interest ---------- */
+  function hist(id) { if (!S.hist[id]) { S.hist[id] = { I: 0, n: 0, tries: 0, last: 0, fin: 0 }; } return S.hist[id]; }
+  function subI(sub) { if (!S.subI[sub]) { S.subI[sub] = { I: 0, n: 0 }; } return S.subI[sub]; }
+  function norm(I) { return (clamp(I, CFG.interestMin, CFG.interestMax) - CFG.interestMin) / (CFG.interestMax - CFG.interestMin); }
+  function ema(old, signal) { return clamp((1 - CFG.ema) * old + CFG.ema * signal, CFG.interestMin, CFG.interestMax); }
+  function catAvg(cat) {
+    var sum = 0, n = 0;
+    for (var k in S.subI) { if (S.subI[k].cat === cat && S.subI[k].n >= 3) { sum += S.subI[k].I; n++; } }
+    return n ? sum / n : 0;
+  }
+  function subInterest(v) {
+    var s = S.subI[v.sub];
+    if (s && s.n >= 3) { return s.I; }
+    return catAvg(v.cat);                               // under 3 viewings: borrow the category average
+  }
+  function applySignal(v, x) {
+    var h = hist(v.id), s = subI(v.sub);
+    h.I = ema(h.I, x); h.n += 1;
+    s.I = ema(s.I, x); s.n += 1; s.cat = v.cat;
+  }
+  function playsToday(id) { return day().plays[id] || 0; }
+
+  /* ---------- Levels ---------- */
+  function levelOf(sub) {
+    var lv = 1;
+    for (var L = 1; L <= 2; L++) {
+      var rec = S.done[sub + '|' + L];
+      if (rec && rec.n >= CFG.levelUpFinishes && Object.keys(rec.ids).length >= CFG.levelUpDistinct) { lv = L + 1; } else { break; }
+    }
+    return lv;
+  }
+  var SUBMIN = {};
+  CATALOG.forEach(function (v) { SUBMIN[v.sub] = Math.min(SUBMIN[v.sub] || 9, v.level); });
+  function levelOk(v) { return v.level <= Math.max(levelOf(v.sub), SUBMIN[v.sub] || 1); }
+
+  /* ---------- Engine: scoring and picking ---------- */
+  function scoreOf(v, ctx) {
+    var h = S.hist[v.id], W = CFG.weights;
+    var N = (!h || !h.last) ? 1 : Math.min(1, (Date.now() - h.last) / (7 * 86400000));
+    var like = S.like[v.id] ? 0.1 : 0;
+    var sc = W.quality * (v.q / 100) + W.subInterest * norm(subInterest(v)) + W.videoInterest * norm(h ? h.I : 0) +
+             W.novelty * N + W.balance * (ctx.need[v.cat] || 0) + like - (playsToday(v.id) > 0 ? CFG.repeatPenalty : 0);
+    return sc + (ctx.jitter[v.id] || 0);
+  }
+  function context() {
+    var w = weekStats(), shares = activeShares(), left = remaining(), jit = {};
+    CATALOG.forEach(function (v) { jit[v.id] = Math.random() * 0.04; });
+    var r = S.recent, n = r.length;
+    var a = n > 0 ? BYID[r[n - 1]] : null, b = n > 1 ? BYID[r[n - 2]] : null;
+    var s = curSession();
+    return {
+      week: w, need: balanceNeed(w, shares), lag: lagLang(w), left: left, jitter: jit,
+      banCh: (a && b && a.ch === b.ch) ? a.ch : null,
+      banCat: (a && b && a.cat === b.cat) ? a.cat : null,
+      calmOnly: !!s && sessionLeft(s) < CFG.calmUnderSecs,
+      thinkingSeen: !!s && (s.cats && s.cats[5] > 0)
+    };
+  }
+  function eligible(ctx, opts) {
+    opts = opts || {};
+    var now = Date.now();
+    var list = CATALOG.filter(function (v) {
+      if (S.block[v.id] || S.blockCh[v.ch] || S.set.catsOff[v.cat] || S.errs[v.id]) { return false; }
+      if (S.hide[v.id] && S.hide[v.id] > now) { return false; }
+      if (playsToday(v.id) >= CFG.maxPlaysPerDay) { return false; }
+      if (v.secs > ctx.left + CFG.fitSlackSecs) { return false; }
+      if (!levelOk(v)) { return false; }
+      if (v.cat === 9 && !opts.treat) { return false; }
+      if (opts.not && opts.not[v.id]) { return false; }
+      return true;
     });
-    out.push('');
-    out.push('Notes: ' + (state.notes || 'none'));
-    out.push('');
-    out.push('Videos I trust:');
-    out.push(state.good || 'none given');
-    out.push('');
-    out.push('Videos I dislike:');
-    out.push(state.bad || 'none given');
-    out.push('');
-    out.push('Player log:');
-    out.push(lines.join('\n') || 'empty');
-    return out.join('\n');
+    if (!opts.treat && !opts.loose) {
+      var strict = list.filter(function (v) { return v.ch !== ctx.banCh && v.cat !== ctx.banCat; });
+      if (strict.length >= 3) { list = strict; }
+    }
+    if (ctx.calmOnly) {
+      var calm = list.filter(function (v) { return v.energy === 'calm'; });
+      if (calm.length) { list = calm; }
+    }
+    return list;
+  }
+  function rank(list, ctx) {
+    return list.map(function (v) { return { v: v, s: scoreOf(v, ctx) }; }).sort(function (x, y) { return y.s - x.s; });
+  }
+  // Takes the best n from a ranked list. capCat limits how many cards one shelf may hold on a screen.
+  // quota (optional) holds how many Hindi and English cards the screen may still take.
+  function take(ranked, n, used, why, out, capCat, quota) {
+    var per = {};
+    out.forEach(function (x) { per[x.v.cat] = (per[x.v.cat] || 0) + 1; });
+    for (var i = 0; i < ranked.length && n > 0; i++) {
+      var v = ranked[i].v;
+      if (used[v.id]) { continue; }
+      if (capCat && (per[v.cat] || 0) >= capCat) { continue; }
+      if (quota && quota[v.lang] <= 0) { continue; }
+      if (quota) { quota[v.lang] -= 1; }
+      used[v.id] = true; per[v.cat] = (per[v.cat] || 0) + 1;
+      out.push({ v: v, why: why, score: ranked[i].s }); n--;
+    }
+    return n;
+  }
+  function pick(slots, opts) {
+    opts = opts || {};
+    var ctx = context(), out = [], used = {};
+    if (ctx.left <= 0) { return out; }
+    var pool = eligible(ctx, { not: opts.not });
+    if (!pool.length) { pool = eligible(ctx, { not: opts.not, loose: true }); }
+    var total = slots.fav + slots.bal + slots.fresh;
+
+    // Language mix on every screen: the Hindi target, nudged by one card when the week has drifted.
+    var hiCards = Math.round(total * S.set.hi / 100) + (ctx.lag === 'hi' ? 1 : ctx.lag === 'en' ? -1 : 0);
+    hiCards = clamp(hiCards, 0, total);
+    var quota = { hi: hiCards, en: total - hiCards };
+
+    if (opts.cat) {                                      // a shelf button was tapped: best of that shelf
+      var inCat = eligible(ctx, { not: opts.not, loose: true, treat: opts.cat === 9 && treatEarned() })
+        .filter(function (v) { return v.cat === opts.cat; });
+      var left1 = take(rank(inCat, ctx), total, used, 'Shelf', out, 0, opts.cat === 9 ? null : quota);
+      if (left1 > 0) { take(rank(inCat, ctx), left1, used, 'Shelf', out); }
+      return out;
+    }
+
+    // Favourites: her top 3 subcategories by interest, core shelves only.
+    // Ties (the first week, when every interest is 0) are broken at random and spread across shelves.
+    var subs = {}, subCat = {};
+    pool.forEach(function (v) { subs[v.sub] = subInterest(v) + Math.random() * 0.01; subCat[v.sub] = v.cat; });
+    var order = Object.keys(subs).sort(function (a, b) { return subs[b] - subs[a]; });
+    var topSubs = [], seenCat = {};
+    order.forEach(function (k) { if (topSubs.length < 3 && !seenCat[subCat[k]]) { topSubs.push(k); seenCat[subCat[k]] = 1; } });
+    order.forEach(function (k) { if (topSubs.length < 3 && topSubs.indexOf(k) < 0) { topSubs.push(k); } });
+    var favPool = pool.filter(function (v) { return topSubs.indexOf(v.sub) >= 0; });
+    take(rank(favPool, ctx), slots.fav, used, 'Favourite', out, 2, quota);
+
+    // Balance: the 2 shelves furthest below their weekly share; lagging language only, when drifting.
+    var favCats = {}; out.forEach(function (x) { favCats[x.v.cat] = 1; });
+    var cats = Object.keys(ctx.need).filter(function (c) { return ctx.need[c] > 0 && +c !== 9; })
+      .sort(function (a, b) {
+        var d = ctx.need[b] - ctx.need[a];
+        if (Math.abs(d) > 0.001) { return d; }
+        var f = (favCats[a] ? 1 : 0) - (favCats[b] ? 1 : 0);          // on a tie, prefer a shelf not already on screen
+        return f !== 0 ? f : CAT[b].share - CAT[a].share;
+      }).slice(0, 2).map(Number);
+    var balPool = pool.filter(function (v) { return cats.indexOf(v.cat) >= 0 && (!ctx.lag || v.lang === ctx.lag); });
+    if (!balPool.length) { balPool = pool.filter(function (v) { return cats.indexOf(v.cat) >= 0; }); }
+    var balStart = out.length;
+    var favHold = out.splice(0, balStart);               // count the one-per-shelf cap over balance cards only
+    take(rank(balPool, ctx), slots.bal, used, 'Balance', out, 1, quota);
+    out.unshift.apply(out, favHold);
+
+    // New: never seen.
+    var newPool = pool.filter(function (v) { return !S.hist[v.id] || !S.hist[v.id].last; });
+    take(rank(newPool, ctx), slots.fresh, used, 'New', out, 3, quota);
+
+    // Fill any gap from the overall ranking.
+    var short = take(rank(pool, ctx), total - out.length, used, 'Favourite', out, 3, quota);
+    if (short > 0) { short = take(rank(pool, ctx), short, used, 'Favourite', out, 3); }
+    if (short > 0) { take(rank(pool, ctx), short, used, 'Favourite', out); }
+
+    // Thinking shelf: at least one offered each session until one is watched.
+    if (!ctx.thinkingSeen && !out.some(function (x) { return x.v.cat === 5; })) {
+      var think = rank(pool.filter(function (v) { return v.cat === 5 && !used[v.id]; }), ctx);
+      if (think.length && out.length) { out[out.length - 1] = { v: think[0].v, why: 'Balance', score: think[0].s }; }
+    }
+
+    // Treat: one extra card on Home only, once earned.
+    if (opts.home && treatEarned() && ctx.left > CFG.calmUnderSecs) {
+      var treats = rank(eligible(ctx, { treat: true }).filter(function (v) { return v.cat === 9; }), ctx);
+      if (treats.length) { out.push({ v: treats[0].v, why: 'Treat', score: treats[0].s }); }
+    }
+    return out;
+  }
+  function treatEarned() { var d = day(); return d.core >= CFG.treatAfterCore && d.treat < CFG.treatPerDay; }
+
+  /* ---------- Viewing: signals when a view ends ---------- */
+  var view = null;                                       // { v, maxT, dur, t0 }
+  function startView(v) {
+    var d = day();
+    view = { v: v, maxT: 0, dur: v.secs, t0: Date.now() };
+    d.plays[v.id] = (d.plays[v.id] || 0) + 1;
+    if (v.cat === 9) { d.treat += 1; }
+    save();
+  }
+  function finishView() {
+    if (!view) { return; }
+    var v = view.v, h = hist(v.id), d = day();
+    var frac = view.dur > 0 ? view.maxT / view.dur : 0;
+    var x;
+    if (frac >= CFG.finishAt) {
+      x = (h.fin && Date.now() - h.fin < 7 * 86400000) ? CFG.signal.comeBack : CFG.signal.finish;
+      h.fin = Date.now();
+      if (v.cat !== 9) { d.core += 1; }
+      var key = v.sub + '|' + v.level;
+      if (!S.done[key]) { S.done[key] = { n: 0, ids: {} }; }
+      S.done[key].n += 1; S.done[key].ids[v.id] = 1;
+    } else if (frac < CFG.abandonBelow) {
+      x = CFG.signal.abandon;
+    } else {
+      x = CFG.signal.partial;
+    }
+    applySignal(v, x);
+    h.tries += 1; h.last = Date.now();
+    if (h.I <= CFG.hideBelow && h.tries >= CFG.hideAfterTries) { S.hide[v.id] = Date.now() + CFG.hideDays * 86400000; }
+    S.recent.push(v.id); if (S.recent.length > 12) { S.recent.shift(); }
+    view = null;
+    save();
   }
 
-  function showFallback(text) {
-    var box = $('out');
-    box.value = text;
-    box.className = 'show';
-    box.focus();
-    box.select();
-    var ok = false;
-    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
-    $('copyStatus').textContent = ok
-      ? 'Copied. Paste it into the chat.'
-      : 'Could not copy automatically. Select the text below, copy it, and paste it into the chat.';
+  /* ---------- Screens ---------- */
+  var SCREENS = ['home', 'play', 'bye', 'oops', 'gate', 'parent'];
+  var screenNow = 'home';
+  function show(name) {
+    SCREENS.forEach(function (s) { $(s).hidden = (s !== name); });
+    screenNow = name;
+    window.scrollTo(0, 0);
   }
 
-  // ---------- Wire up ----------
-  function init() {
-    if (window.location.protocol === 'file:') { $('fileWarn').className = 'warn show'; }
+  function cardEl(item, onTap) {
+    var v = item.v, b = document.createElement('button');
+    b.type = 'button'; b.className = 'card';
+    b.style.setProperty('--c', CAT[v.cat].color);
+    b.setAttribute('aria-label', CAT[v.cat].name);
+    var img = document.createElement('img');
+    img.src = 'https://i.ytimg.com/vi/' + v.id + '/mqdefault.jpg'; img.alt = ''; img.loading = 'lazy'; img.draggable = false;
+    b.appendChild(img);
+    if (v.cat === 9) { var st = document.createElement('span'); st.className = 'star'; st.textContent = '⭐'; b.appendChild(st); }
+    var why = document.createElement('span'); why.className = 'why';
+    why.textContent = item.why + ' · ' + item.score.toFixed(2); b.appendChild(why);
+    b.addEventListener('click', function () { onTap(v); });
+    return b;
+  }
 
-    renderCards();
-    renderQuestions();
-    renderCounts();
-
-    $('optHide').checked = !!state.hide;
-    $('optPrivacy').checked = !!state.privacy;
-    $('notes').value = state.notes || '';
-    $('good').value = state.good || '';
-    $('bad').value = state.bad || '';
-
-    $('optHide').addEventListener('change', function () { state.hide = this.checked; save(); buildPlayer(); });
-    $('optPrivacy').addEventListener('change', function () { state.privacy = this.checked; save(); buildPlayer(); });
-    $('notes').addEventListener('input', function () { state.notes = this.value; save(); });
-    $('good').addEventListener('input', function () { state.good = this.value; save(); });
-    $('bad').addEventListener('input', function () { state.bad = this.value; save(); });
-
-    $('adPlus').addEventListener('click', function () { state.ads += 1; save(); renderCounts(); log('Ad counted by parent.'); });
-    $('adMinus').addEventListener('click', function () { state.ads = Math.max(0, state.ads - 1); save(); renderCounts(); });
-
-    $('playBtn').addEventListener('click', function () {
-      if (!ready || !player) { log('Play button: player not ready.'); return; }
-      var s = -1;
-      try { s = player.getPlayerState(); } catch (e) { /* ignore */ }
-      if (s === 1 || s === 3) {
-        player.pauseVideo();
-      } else {
-        if (!tapAt) { tapAt = Date.now(); }
-        player.playVideo();
-      }
+  var catFilter = 0;
+  function renderHome() {
+    if (remaining() <= 0) { showBye(); return; }
+    $('hello').textContent = S.set.name ? S.set.name : '';
+    document.body.classList.toggle('showwhy', !!S.set.why);
+    var nav = $('cats'); nav.innerHTML = '';
+    var shares = activeShares();
+    CATS.forEach(function (c) {
+      if (!shares[c.id]) { return; }
+      if (c.id === 9 && !treatEarned()) { return; }
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'cat' + (catFilter === c.id ? ' on' : '');
+      b.style.setProperty('--c', c.color); b.textContent = c.emoji; b.setAttribute('aria-label', c.name);
+      b.addEventListener('click', function () { catFilter = (catFilter === c.id ? 0 : c.id); renderHome(); });
+      nav.appendChild(b);
     });
-    $('shelfBtn').addEventListener('click', function () {
-      $('shelf').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
+    var items = pick(CFG.homeSlots, { home: true, cat: catFilter || 0 });
+    if (catFilter && !items.length) { catFilter = 0; items = pick(CFG.homeSlots, { home: true }); }
+    var row = $('row'); row.innerHTML = '';
+    if (!items.length) { showBye(); return; }
+    items.forEach(function (it) { row.appendChild(cardEl(it, openVideo)); });
+    show('home');
+  }
 
-    $('ownPlay').addEventListener('click', function () {
-      var id = parseId($('ownLink').value);
-      if (!id) { log('Own link: could not find a video id in that text.'); return; }
-      playId(id, 'Own link');
-    });
+  function renderShelf() {
+    var not = {}; if (view) { not[view.v.id] = 1; }
+    var items = pick(CFG.shelfSlots, { not: not });
+    var wrap = $('shelfCards'); wrap.innerHTML = '';
+    items.forEach(function (it) { wrap.appendChild(cardEl(it, openVideo)); });
+    return items.length;
+  }
 
-    $('copyBtn').addEventListener('click', function () {
-      var text = buildResults();
-      $('copyStatus').textContent = '';
-      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-        navigator.clipboard.writeText(text).then(function () {
-          $('copyStatus').textContent = 'Copied. Paste it into the chat.';
-        }).catch(function () { showFallback(text); });
-      } else {
-        showFallback(text);
-      }
-    });
+  function showBye() {
+    endSessionIfSpent();
+    $('byeline').textContent = doneForToday()
+      ? 'Bye bye! कल मिलेंगे'
+      : 'Bye bye! फिर मिलेंगे';
+    try { if (player && ready) { player.pauseVideo(); } } catch (e) { /* ignore */ }
+    show('bye');
+  }
+  function endSessionIfSpent() {
+    var s = curSession();
+    if (s && (sessionLeft(s) < 60 || dayLeft() < 60)) { endSession(); }
+  }
 
-    log('Page opened at ' + window.location.origin + '.');
+  /* ---------- Player ---------- */
+  var player = null, apiReady = false, ready = false, pendingId = null, ytState = -1;
+  var watchdog = 0, shieldOffUntil = 0;
 
-    // Load YouTube's player script last, once everything above is in place.
+  function loadApi() {
+    if (window.YT && window.YT.Player) { return; }
     var s = document.createElement('script');
     s.src = 'https://www.youtube.com/iframe_api';
-    s.onerror = function () { log('ERROR: the YouTube player script did not load. Check the internet connection.'); };
+    s.onerror = function () { apiReady = false; };
     document.head.appendChild(s);
   }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
+  window.onYouTubeIframeAPIReady = function () {
+    apiReady = true;
+    player = new window.YT.Player('yt', {
+      width: '100%', height: '100%',
+      playerVars: { playsinline: 1, rel: 0, fs: 0, controls: 0, disablekb: 1, iv_load_policy: 3, origin: window.location.origin },
+      events: { onReady: onReady, onStateChange: onState, onError: onError }
+    });
+  };
+  function onReady() {
+    ready = true;
+    if (pendingId) { var id = pendingId; pendingId = null; player.loadVideoById(id); }
   }
+  function setIcons(playing) {
+    $('iconPlay').style.display = playing ? 'none' : '';
+    $('iconPause').style.display = playing ? '' : 'none';
+  }
+  function cover(mode) {                                 // '', 'play' or 'replay'
+    $('cover').hidden = !mode;
+    $('coverPlay').style.display = mode === 'replay' ? 'none' : '';
+    $('coverReplay').style.display = mode === 'replay' ? '' : 'none';
+  }
+  function shieldSync() {
+    var on = S.set.shield && Date.now() > shieldOffUntil;
+    $('shield').hidden = !on;
+    if (!on) { cover(''); }
+  }
+  function onState(e) {
+    ytState = e.data;
+    if (e.data === 1) {
+      clearTimeout(watchdog);
+      setIcons(true); cover(''); $('after').hidden = true;
+      if (view) { try { var d = player.getDuration(); if (d > 0) { view.dur = d; } } catch (err) { /* ignore */ } }
+      shieldSync();
+    } else if (e.data === 2) {
+      setIcons(false);
+      if (S.set.shield && Date.now() > shieldOffUntil) { cover('play'); }
+    } else if (e.data === 0) {
+      setIcons(false);
+      onEnded();
+    }
+  }
+  function onError(e) {
+    clearTimeout(watchdog);
+    if (view) { S.errs[view.v.id] = e.data; var d = day(); d.plays[view.v.id] = Math.max(0, (d.plays[view.v.id] || 1) - 1); view = null; save(); }
+    if (remaining() > 0 && renderShelf() > 0) {
+      cover('play'); $('cover').hidden = true;
+      $('shelf').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else { renderHome(); }
+  }
+  function onEnded() {
+    var v = view ? view.v : null;
+    if (view) { view.maxT = view.dur; }
+    finishView();
+    endSessionIfSpent();
+    if (remaining() <= 0) { setTimeout(showBye, 900); return; }
+    var n = renderShelf();
+    if (!n) { endSession(); setTimeout(showBye, 900); return; }
+    lastVideo = v;
+    if (S.set.shield) { cover('replay'); }
+    if (v && TALK[v.sub]) {
+      $('talk').textContent = '💬 ' + TALK[v.sub][v.lang === 'hi' ? 0 : 1];
+      $('after').hidden = false;
+    }
+    setTimeout(function () { if (screenNow === 'play') { $('shelf').scrollIntoView({ behavior: 'smooth', block: 'start' }); } }, 400);
+  }
+  var lastVideo = null;
+
+  function openVideo(v) {
+    if (remaining() <= 0) { showBye(); return; }
+    if (!apiReady && !(window.YT && window.YT.Player)) { show('oops'); loadApi(); return; }
+    finishView();
+    lastVideo = v;
+    startView(v);
+    show('play');
+    $('after').hidden = true; cover(''); setIcons(false);
+    shieldOffUntil = 0; shieldSync();
+    renderShelf();
+    if (ready && player && player.loadVideoById) { player.loadVideoById(v.id); } else { pendingId = v.id; }
+    clearTimeout(watchdog);
+    watchdog = setTimeout(function () {                  // not playing after 7 s: try again, then let her tap YouTube's own button
+      if (ytState !== 1 && screenNow === 'play') {
+        try { player.playVideo(); } catch (e) { /* ignore */ }
+        watchdog = setTimeout(function () {
+          if (ytState !== 1 && screenNow === 'play') { shieldOffUntil = Date.now() + 15000; shieldSync(); setTimeout(shieldSync, 15100); }
+        }, 4000);
+      }
+    }, 7000);
+  }
+  function togglePlay() {
+    if (!ready || !player) { return; }
+    if (ytState === 1 || ytState === 3) { player.pauseVideo(); return; }
+    if (ytState === 0 && lastVideo) {                    // replay after the end counts as a new viewing
+      if (remaining() <= 0) { showBye(); return; }
+      if (playsToday(lastVideo.id) >= CFG.maxPlaysPerDay) { $('shelf').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+      startView(lastVideo);
+      player.seekTo(0, true);
+    }
+    player.playVideo();
+  }
+  function goHome() {
+    try { if (ready) { player.pauseVideo(); } } catch (e) { /* ignore */ }
+    finishView();
+    catFilter = 0;
+    renderHome();
+  }
+
+  // One-second heartbeat: counts playing time and tracks how far she got.
+  setInterval(function () {
+    if (screenNow === 'play' && ytState === 1 && view && ready) {
+      var t = 0; try { t = player.getCurrentTime() || 0; } catch (e) { /* ignore */ }
+      if (t > view.maxT) { view.maxT = t; }
+      addSecond(view.v);
+    }
+    if (screenNow === 'home' && remaining() <= 0) { showBye(); }
+    if (screenNow === 'bye' && remaining() > 0) { renderHome(); }
+  }, 1000);
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) { try { if (ready && ytState === 1) { player.pauseVideo(); } } catch (e) { /* ignore */ } save(); }
+  });
+
+  /* ---------- Press-and-hold helpers ---------- */
+  function hold(el, ms, fn) {
+    var timer = 0;
+    function start(e) { e.preventDefault(); el.classList.add('holding'); timer = setTimeout(function () { el.classList.remove('holding'); fn(); }, ms); }
+    function stop() { clearTimeout(timer); el.classList.remove('holding'); }
+    el.addEventListener('pointerdown', start);
+    el.addEventListener('pointerup', stop);
+    el.addEventListener('pointerleave', stop);
+    el.addEventListener('pointercancel', stop);
+    el.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  }
+
+  /* ---------- Parent gate ---------- */
+  var WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+  var gateCode = '', gateTyped = '', gateFrom = 'home';
+  function openGate() {
+    try { if (ready && ytState === 1) { player.pauseVideo(); } } catch (e) { /* ignore */ }
+    gateFrom = screenNow === 'gate' ? gateFrom : screenNow;
+    gateCode = ''; gateTyped = '';
+    for (var i = 0; i < 3; i++) { gateCode += String(Math.floor(Math.random() * 10)); }
+    $('gateWords').textContent = gateCode.split('').map(function (d) { return WORDS[+d]; }).join(', ');
+    $('gateDots').textContent = '';
+    show('gate');
+  }
+  function gateKey(d) {
+    gateTyped += d;
+    $('gateDots').textContent = gateTyped.replace(/./g, '●');
+    if (gateTyped.length >= 3) {
+      if (gateTyped === gateCode) { openParent(); } else { leaveParent(); }
+    }
+  }
+  function leaveParent() {
+    if (gateFrom === 'play' && view && remaining() > 0) { show('play'); } else { finishView(); renderHome(); }
+  }
+
+  /* ---------- Parent area ---------- */
+  function mins(secs) { return Math.round(secs / 60); }
+  function mmss(secs) { var m = Math.floor(secs / 60), s = Math.round(secs % 60); return m + ':' + (s < 10 ? '0' : '') + s; }
+  function weekKey() {
+    var n = new Date(), jan = new Date(n.getFullYear(), 0, 1);
+    return n.getFullYear() + '-w' + Math.ceil(((n - jan) / 86400000 + jan.getDay() + 1) / 7);
+  }
+  function buildReport() {
+    var w = weekStats(), shares = activeShares(), out = [], days = lastDays(7).reverse();
+    out.push('CHHOTI DUNIYA - WEEKLY REPORT (' + dkey() + ', app ' + CFG.version + ')');
+    out.push('');
+    out.push('TIME (cap ' + S.set.cap + ' min a day)');
+    if (!days.length) { out.push('  No viewing recorded yet.'); }
+    days.forEach(function (x) {
+      out.push('  ' + x.key + ': ' + mins(x.d.secs) + ' min, ' + x.d.sess.length + ' session(s)' + (x.d.over ? ', ' + x.d.over + ' override(s)' : ''));
+    });
+    out.push('');
+    out.push('PLATE (share watched vs target)');
+    CATS.forEach(function (c) {
+      if (!shares[c.id]) { return; }
+      var a = w.total ? Math.round(100 * (w.cat[c.id] || 0) / w.total) : 0;
+      out.push('  ' + c.name + ': ' + a + '% (target ' + Math.round(100 * shares[c.id]) + '%)');
+    });
+    out.push('');
+    var lt = w.lang.hi + w.lang.en;
+    out.push('LANGUAGE: Hindi ' + (lt ? Math.round(100 * w.lang.hi / lt) : 0) + '%, English ' + (lt ? Math.round(100 * w.lang.en / lt) : 0) + '% (target Hindi ' + S.set.hi + '%)');
+    out.push('');
+    out.push('FAVOURITES (by interest)');
+    var favs = Object.keys(S.hist).filter(function (id) { return BYID[id] && S.hist[id].n > 0; })
+      .sort(function (a, b) { return S.hist[b].I - S.hist[a].I; }).slice(0, 5);
+    if (!favs.length) { out.push('  None yet.'); }
+    favs.forEach(function (id) { out.push('  ' + BYID[id].t + ' [' + id + '] interest ' + S.hist[id].I.toFixed(2) + ', ' + S.hist[id].tries + ' viewing(s)'); });
+    out.push('');
+    out.push('NOT FOR HER (hidden for ' + CFG.hideDays + ' days)');
+    var hid = Object.keys(S.hide).filter(function (id) { return S.hide[id] > Date.now() && BYID[id]; });
+    if (!hid.length) { out.push('  None.'); }
+    hid.forEach(function (id) { out.push('  ' + BYID[id].t + ' [' + id + ']'); });
+    out.push('');
+    out.push('LEVELS');
+    var subs = {}; CATALOG.forEach(function (v) { subs[v.sub] = 1; });
+    var lv = Object.keys(subs).map(function (s) { return s + ' L' + levelOf(s); });
+    out.push('  ' + lv.join(', '));
+    out.push('');
+    var bl = Object.keys(S.block), bc = Object.keys(S.blockCh), lk = Object.keys(S.like), er = Object.keys(S.errs);
+    out.push('BLOCKED VIDEOS: ' + (bl.length ? bl.join(', ') : 'none'));
+    out.push('BLOCKED CHANNELS: ' + (bc.length ? bc.join(', ') : 'none'));
+    out.push('THUMBS UP: ' + (lk.length ? lk.join(', ') : 'none'));
+    out.push('WOULD NOT PLAY: ' + (er.length ? er.map(function (id) { return id + ' (error ' + S.errs[id] + ')'; }).join(', ') : 'none'));
+    out.push('NEW WORDS THIS WEEK: ' + (S.words[weekKey()] || 0));
+    return out.join('\n');
+  }
+  function copyText(text, msgEl, boxEl) {
+    function fallback() {
+      boxEl.hidden = false; boxEl.value = text; boxEl.focus(); boxEl.select();
+      var ok = false; try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      msgEl.textContent = ok ? 'Copied.' : 'Select the text in the box and copy it.';
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { msgEl.textContent = 'Copied.'; }).catch(fallback);
+    } else { fallback(); }
+  }
+  function todayLine() {
+    var d = day(), s = curSession();
+    return 'Today: ' + mins(d.secs) + ' of ' + (S.set.cap + mins(d.ext)) + ' minutes used, ' + d.sess.length + ' of ' + S.set.num +
+      ' sessions' + (s ? ' (one running, ' + mins(Math.max(0, sessionLeft(s))) + ' min left)' : '') +
+      '. Catalog: ' + CATALOG.length + ' videos.';
+  }
+  function openParent() {
+    $('todayLine').textContent = todayLine();
+    $('pMsg').textContent = ''; $('copyMsg').textContent = ''; $('bMsg').textContent = '';
+    $('sCap').value = S.set.cap; $('sLen').value = S.set.len; $('sNum').value = S.set.num; $('sGap').value = S.set.gap;
+    $('sCut').value = S.set.cut; $('sHi').value = S.set.hi; $('sName').value = S.set.name;
+    $('sShield').checked = !!S.set.shield; $('sWhy').checked = !!S.set.why;
+    $('sWords').value = S.words[weekKey()] || 0;
+    $('report').textContent = buildReport();
+    var ct = $('catToggles'); ct.innerHTML = '';
+    CATS.forEach(function (c) {
+      var n = CATALOG.filter(function (v) { return v.cat === c.id; }).length;
+      var row = document.createElement('div'); row.className = 'catrow';
+      var lab = document.createElement('span'); lab.textContent = c.emoji + ' ' + c.name + ' (' + n + ')';
+      var cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !S.set.catsOff[c.id];
+      cb.style.cssText = 'width:26px;height:26px;accent-color:#4C5FD5';
+      cb.addEventListener('change', function () { if (cb.checked) { delete S.set.catsOff[c.id]; } else { S.set.catsOff[c.id] = 1; } save(); });
+      row.appendChild(lab); row.appendChild(cb); ct.appendChild(row);
+    });
+    renderVidList();
+    show('parent');
+  }
+  function renderVidList() {
+    var wrap = $('vidList'); wrap.innerHTML = '';
+    CATS.forEach(function (c) {
+      var vids = CATALOG.filter(function (v) { return v.cat === c.id; });
+      if (!vids.length) { return; }
+      var h = document.createElement('h3'); h.textContent = c.emoji + ' ' + c.name; wrap.appendChild(h);
+      vids.forEach(function (v) {
+        var row = document.createElement('div');
+        row.className = 'vid' + ((S.block[v.id] || S.blockCh[v.ch]) ? ' blocked' : '');
+        var img = document.createElement('img'); img.src = 'https://i.ytimg.com/vi/' + v.id + '/default.jpg'; img.alt = ''; img.loading = 'lazy';
+        var t = document.createElement('div'); t.className = 't'; t.textContent = v.t;
+        var sm = document.createElement('small');
+        sm.textContent = v.ch + ' · ' + (v.lang === 'hi' ? 'Hindi' : 'English') + ' · ' + mmss(v.secs) + ' · ' + v.energy + ' · L' + v.level;
+        t.appendChild(sm);
+        var up = document.createElement('button'); up.type = 'button'; up.textContent = '👍'; up.className = S.like[v.id] ? 'on' : '';
+        up.setAttribute('aria-label', 'Thumbs up');
+        up.addEventListener('click', function () {
+          if (S.like[v.id]) { delete S.like[v.id]; } else { S.like[v.id] = 1; applySignal(v, CFG.signal.thumbsUp); delete S.hide[v.id]; }
+          save(); renderVidList();
+        });
+        var bl = document.createElement('button'); bl.type = 'button'; bl.textContent = S.block[v.id] ? 'Unblock' : 'Block'; bl.className = S.block[v.id] ? 'on' : '';
+        bl.addEventListener('click', function () { if (S.block[v.id]) { delete S.block[v.id]; } else { S.block[v.id] = 1; } save(); renderVidList(); });
+        var bc = document.createElement('button'); bc.type = 'button'; bc.textContent = S.blockCh[v.ch] ? 'Unblock channel' : 'Block channel'; bc.className = S.blockCh[v.ch] ? 'on' : '';
+        bc.addEventListener('click', function () { if (S.blockCh[v.ch]) { delete S.blockCh[v.ch]; } else { S.blockCh[v.ch] = 1; } save(); renderVidList(); });
+        row.appendChild(img); row.appendChild(t); row.appendChild(up); row.appendChild(bl); row.appendChild(bc);
+        wrap.appendChild(row);
+      });
+    });
+  }
+  function numSetting(id, key, lo, hi) {
+    $(id).addEventListener('change', function () {
+      var n = parseInt(this.value, 10);
+      if (isNaN(n)) { this.value = S.set[key]; return; }
+      S.set[key] = clamp(n, lo, hi); this.value = S.set[key]; save();
+      $('todayLine').textContent = todayLine();
+    });
+  }
+
+  /* ---------- Wire up ---------- */
+  function init() {
+    Array.prototype.forEach.call(document.querySelectorAll('[data-lock]'), function (el) { hold(el, 3000, openGate); });
+    hold($('peek'), 1000, function () { shieldOffUntil = Date.now() + 8000; shieldSync(); setTimeout(shieldSync, 8100); });
+
+    $('shield').addEventListener('click', togglePlay);
+    $('cover').addEventListener('click', togglePlay);
+    $('pp').addEventListener('click', togglePlay);
+    $('homeBtn').addEventListener('click', goHome);
+    $('retry').addEventListener('click', function () { loadApi(); renderHome(); });
+
+    var kp = $('keypad');
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 0].forEach(function (d) {
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = String(d);
+      if (d === 0) { b.style.gridColumn = '2'; }
+      b.addEventListener('click', function () { gateKey(String(d)); });
+      kp.appendChild(b);
+    });
+    $('gateBack').addEventListener('click', leaveParent);
+
+    $('pClose').addEventListener('click', leaveParent);
+    $('pMore').addEventListener('click', function () {
+      var d = day(), s = d.sess[d.sess.length - 1];
+      if (!s) { $('pMsg').textContent = 'No session has started today yet.'; return; }
+      s.ext = (s.ext || 0) + CFG.extensionSecs; s.end = 0; s.last = Date.now();
+      d.ext += CFG.extensionSecs; d.over += 1; save();
+      $('pMsg').textContent = '5 minutes added.'; $('todayLine').textContent = todayLine();
+    });
+    $('pOpen').addEventListener('click', function () {
+      var d = day();
+      endSession();
+      d.pass = 1; d.over += 1;
+      if (dayLeft() < S.set.len * 60) { d.ext += S.set.len * 60 - Math.max(0, dayLeft()); }
+      save();
+      $('pMsg').textContent = 'One extra session is allowed now.'; $('todayLine').textContent = todayLine();
+    });
+    numSetting('sCap', 'cap', 5, 180); numSetting('sLen', 'len', 5, 60); numSetting('sNum', 'num', 1, 6);
+    numSetting('sGap', 'gap', 0, 600); numSetting('sHi', 'hi', 0, 100);
+    $('sCut').addEventListener('change', function () { S.set.cut = this.value || ''; save(); });
+    $('sName').addEventListener('input', function () { S.set.name = this.value.slice(0, 20); save(); });
+    $('sShield').addEventListener('change', function () { S.set.shield = this.checked; save(); shieldSync(); });
+    $('sWhy').addEventListener('change', function () { S.set.why = this.checked; save(); document.body.classList.toggle('showwhy', !!S.set.why); });
+    $('sWords').addEventListener('change', function () { S.words[weekKey()] = clamp(parseInt(this.value, 10) || 0, 0, 999); save(); $('report').textContent = buildReport(); });
+    $('pCopy').addEventListener('click', function () { copyText(buildReport(), $('copyMsg'), $('copyOut')); });
+    $('bCopy').addEventListener('click', function () { copyText(JSON.stringify(S), $('bMsg'), $('bBox')); });
+    $('bRestore').addEventListener('click', function () {
+      try {
+        var obj = JSON.parse($('bBox').value);
+        if (!obj || obj.v !== 1) { throw new Error('bad'); }
+        S = merge(fresh(), obj); save(); $('bMsg').textContent = 'Restored.'; openParent();
+      } catch (e) { $('bMsg').textContent = 'That text is not a valid backup.'; }
+    });
+    var resetArmed = 0;
+    $('bReset').addEventListener('click', function () {
+      if (Date.now() - resetArmed < 4000) { S = fresh(); save(); resetArmed = 0; $('bMsg').textContent = 'All history erased.'; openParent(); }
+      else { resetArmed = Date.now(); $('bMsg').textContent = 'Tap "Erase all history" again within 4 seconds to confirm.'; }
+    });
+
+    loadApi();
+    renderHome();
+  }
+
+  // Test hooks (read-only helpers for checking the engine from the console).
+  window.__cd = {
+    cfg: CFG, catalog: CATALOG, state: function () { return S; }, pick: pick, remaining: remaining,
+    report: buildReport, context: context, save: save, home: renderHome, levelOf: levelOf
+  };
+
+  if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); } else { init(); }
 })();
 </script>
 </body>
