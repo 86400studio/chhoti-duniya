@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Chhoti Duniya · Phase 0 test</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Mukta:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FFF6E5;
+    --white: #FFFFFF;
+    --ink: #33264A;
+    --slate: #6B6478;
+    --mango: #FFB300;
+    --mango-dark: #C98A00;
+    --coral: #FF6F59;
+    --indigo: #4C5FD5;
+    --line: #EEE4D2;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--cream);
+    color: var(--ink);
+    font-family: "Mukta", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 16px;
+    line-height: 1.45;
+  }
+  h1, h2, .brand, .lang, .copy { font-family: "Baloo 2", "Mukta", system-ui, sans-serif; }
+
+  .topbar {
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+  }
+  .brand { font-weight: 700; font-size: 18px; }
+  .pill {
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--ink);
+    color: var(--white);
+    border-radius: 12px;
+    padding: 2px 10px;
+  }
+
+  .warn {
+    display: none;
+    margin: 8px 16px;
+    padding: 12px 16px;
+    border-radius: 16px;
+    background: var(--coral);
+    color: var(--white);
+    font-weight: 600;
+  }
+  .warn.show { display: block; }
+
+  /* Player: full width, never taller than the screen minus the buttons and a peek of the shelf */
+  .stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    max-height: calc(100vh - 160px);
+    max-height: calc(100dvh - 160px);
+    background: #000;
+  }
+  #playerSlot, #playerSlot iframe, #yt {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .controls {
+    height: 88px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+  }
+  .big {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 0;
+    background: var(--mango);
+    box-shadow: 0 4px 0 var(--mango-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 120ms ease, box-shadow 120ms ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .big:active { transform: translateY(4px) scale(0.94); box-shadow: 0 0 0 var(--mango-dark); }
+  .big svg { width: 34px; height: 34px; fill: var(--ink); }
+  .big.alt { background: var(--white); box-shadow: 0 4px 0 #D9CDB6; }
+
+  .shelf { padding: 0 16px 8px; scroll-margin-top: 8px; }
+  .shelf-note { margin: 8px 0 0; font-size: 13px; color: var(--slate); }
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  @media (orientation: landscape) {
+    .cards { grid-template-columns: repeat(4, 1fr); }
+  }
+  /* Phone held sideways: video fills the height, our buttons sit beside it, card tops peek below */
+  @media (orientation: landscape) and (max-height: 520px) {
+    .topbar { display: none; }
+    .playrow { display: flex; align-items: stretch; }
+    .stage {
+      flex: 1 1 auto;
+      width: auto;
+      aspect-ratio: auto;
+      height: calc(100vh - 48px);
+      height: calc(100dvh - 48px);
+      max-height: none;
+    }
+    .controls { flex: 0 0 104px; flex-direction: column; height: auto; gap: 16px; }
+    .shelf { padding-top: 8px; }
+  }
+  .card {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 0;
+    aspect-ratio: 16 / 9;
+    border: 6px solid var(--c, var(--indigo));
+    border-radius: 24px;
+    overflow: hidden;
+    background: var(--c, var(--indigo));
+    cursor: pointer;
+    transition: transform 120ms ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .card:active { transform: scale(0.94); }
+  .card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .lang {
+    position: absolute;
+    left: 8px;
+    bottom: 8px;
+    background: var(--white);
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 14px;
+    border-radius: 12px;
+    padding: 0 10px;
+  }
+
+  .panel {
+    background: var(--white);
+    margin: 24px 16px;
+    border-radius: 24px;
+    padding: 20px;
+  }
+  .panel h2 { margin: 0 0 4px; font-size: 22px; font-weight: 700; }
+  .panel .sub { margin: 0 0 12px; color: var(--slate); font-size: 14px; }
+  .row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 8px 0; }
+  .row label { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+  .row input[type="checkbox"] { width: 24px; height: 24px; accent-color: var(--indigo); }
+  input[type="text"], textarea {
+    width: 100%;
+    font: inherit;
+    color: var(--ink);
+    border: 2px solid var(--line);
+    border-radius: 12px;
+    padding: 10px 12px;
+    background: var(--white);
+  }
+  textarea { min-height: 76px; resize: vertical; }
+  .btn {
+    font: inherit;
+    font-weight: 600;
+    min-height: 44px;
+    padding: 8px 16px;
+    border-radius: 22px;
+    border: 2px solid var(--ink);
+    background: var(--white);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .btn.on { background: var(--ink); color: var(--white); }
+  .q { border-top: 1px solid var(--line); padding: 14px 0; }
+  .q p { margin: 0 0 4px; font-weight: 600; }
+  .q small { display: block; color: var(--slate); margin-bottom: 8px; }
+  .opts { display: flex; gap: 8px; flex-wrap: wrap; }
+  .counts { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+  .counts b { font-size: 18px; }
+  .log {
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 12px;
+    background: #F7F1E4;
+    border-radius: 12px;
+    padding: 12px;
+    max-height: 220px;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .copy {
+    width: 100%;
+    min-height: 56px;
+    border: 0;
+    border-radius: 28px;
+    background: var(--mango);
+    box-shadow: 0 4px 0 var(--mango-dark);
+    color: var(--ink);
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .copy:active { transform: translateY(4px); box-shadow: none; }
+  #copyStatus { margin: 12px 0 0; font-weight: 600; min-height: 22px; }
+  #out { display: none; margin-top: 12px; min-height: 160px; font-size: 12px; }
+  #out.show { display: block; }
+  .field { margin-top: 12px; }
+  .field > span { display: block; font-weight: 600; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="brand">Chhoti Duniya</span>
+  <span class="pill">Phase 0 test</span>
+</div>
+
+<div class="warn" id="fileWarn">
+  This page was opened from phone storage. YouTube will not play here. Open it from the hosted https link instead.
+</div>
+
+<!-- 1. Player (YouTube's own embedded player, nothing placed over it) -->
+<div class="playrow">
+<div class="stage"><div id="playerSlot"><div id="yt"></div></div></div>
+
+<!-- 2. Our own buttons, beside the player -->
+<div class="controls">
+  <button class="big" id="playBtn" type="button" aria-label="Play or pause">
+    <svg id="iconPlay" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+    <svg id="iconPause" viewBox="0 0 24 24" aria-hidden="true" style="display:none"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+  </button>
+  <button class="big alt" id="shelfBtn" type="button" aria-label="Go to the cards">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg>
+  </button>
+</div>
+</div>
+
+<!-- 3. Swipe-up shelf -->
+<section class="shelf" id="shelf">
+  <div class="cards" id="cards"></div>
+  <p class="shelf-note">Shelf: four test videos. These are for testing only and are not yet approved for the catalog.</p>
+</section>
+
+<!-- 4. Parent test panel -->
+<section class="panel">
+  <h2>Settings to try</h2>
+  <p class="sub">Changing a setting reloads the player.</p>
+  <div class="row">
+    <label><input type="checkbox" id="optHide"> Hide YouTube's own controls</label>
+  </div>
+  <div class="row">
+    <label><input type="checkbox" id="optPrivacy"> Privacy mode (youtube-nocookie.com)</label>
+  </div>
+  <div class="field">
+    <span>Test any other YouTube link</span>
+    <input type="text" id="ownLink" placeholder="Paste a YouTube link here" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <div class="row"><button class="btn" id="ownPlay" type="button">Play this link</button></div>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>Checklist</h2>
+  <p class="sub">Answer what you see on your phone. About 10 minutes. Answers are saved on this phone as you go.</p>
+  <div class="counts">
+    <span>Videos started: <b id="playCount">0</b></span>
+    <span>Ads seen: <b id="adCount">0</b></span>
+    <button class="btn" id="adPlus" type="button">+1 ad</button>
+    <button class="btn" id="adMinus" type="button">-1</button>
+  </div>
+  <div id="questions"></div>
+  <div class="field">
+    <span>Anything else you noticed</span>
+    <textarea id="notes" placeholder="Optional"></textarea>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>Videos for calibration</h2>
+  <p class="sub">Paste YouTube links, one per line. Up to 20 each. These tune the quality score before the real catalog is built.</p>
+  <div class="field">
+    <span>Videos you trust and would happily show her</span>
+    <textarea id="good" placeholder="One link per line"></textarea>
+  </div>
+  <div class="field">
+    <span>Videos you dislike and want kept out</span>
+    <textarea id="bad" placeholder="One link per line"></textarea>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>Player log</h2>
+  <p class="sub">Filled in automatically. It is included when you copy the results.</p>
+  <div class="log" id="log"></div>
+</section>
+
+<section class="panel">
+  <button class="copy" id="copyBtn" type="button">Copy results</button>
+  <p id="copyStatus"></p>
+  <textarea id="out" readonly></textarea>
+</section>
+
+<script>
+(function () {
+  'use strict';
+
+  // Test videos only. Not an approved catalog.
+  var VIDEOS = [
+    { id: '_HC3v4dMafU', label: 'Hindi rhyme (Infobells Hindi)', lang: 'हिंदी', color: '#8E63CE' },
+    { id: 'sCZT-qqCEAg', label: 'Hindi varnamala (ChuChu TV Hindi)', lang: 'हिंदी', color: '#2F9BE6' },
+    { id: 'v-BvRlsbUiU', label: 'Colours song (Super Simple Songs)', lang: 'English', color: '#FF6F59' },
+    { id: 'wceMsYSyNUQ', label: 'Rainbow song (Super Simple Songs)', lang: 'English', color: '#17A398' }
+  ];
+
+  var QUESTIONS = [
+    { key: 'sound', text: 'Tap a card. Did the video start by itself, with sound?', hint: 'If you had to tap again inside the video, answer No.' },
+    { key: 'ads', text: 'Did an ad play before or during any video?', hint: 'Press "+1 ad" above each time you see one. Play at least 6 videos.' },
+    { key: 'swipe', text: 'Put your finger on the video and swipe up. Did the page move to the cards?', hint: 'This is the swipe she already uses in YouTube Kids.' },
+    { key: 'endslide', text: 'Let one video finish. Did the page slide to the cards by itself?', hint: '' },
+    { key: 'endsuggest', text: 'When that video finished, did YouTube show its own suggested videos inside the player?', hint: '' },
+    { key: 'leak', text: 'With "Hide YouTube\'s own controls" ticked, tap around inside the video. Did anything open YouTube or leave this page?', hint: 'Try the YouTube logo and the video title if you can see them.' },
+    { key: 'pin', text: 'Pin Chrome with Android app pinning, then tap the YouTube logo in the video. Did it still leave this page?', hint: 'In phone Settings, search for "App pinning" or "Pin windows" and switch it on first.' },
+    { key: 'landscape', text: 'Turn the phone sideways. Does the video fit, with the top of the cards peeking below it?', hint: '' }
+  ];
+  var CHOICES = ['Yes', 'No', 'Not sure'];
+
+  var STORE_KEY = 'cd_phase0_v1';
+  var state = { answers: {}, notes: '', good: '', bad: '', ads: 0, plays: 0, hide: true, privacy: false };
+  try {
+    var saved = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
+    if (saved && typeof saved === 'object') {
+      for (var k in state) { if (Object.prototype.hasOwnProperty.call(saved, k)) { state[k] = saved[k]; } }
+    }
+  } catch (e) { /* storage unavailable: carry on without it */ }
+
+  function save() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
+  }
+  function $(id) { return document.getElementById(id); }
+
+  // ---------- Log ----------
+  var lines = [];
+  function stamp() {
+    var d = new Date();
+    function p(n) { return (n < 10 ? '0' : '') + n; }
+    return p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+  }
+  function log(msg) {
+    lines.push(stamp() + '  ' + msg);
+    if (lines.length > 80) { lines.shift(); }
+    var el = $('log');
+    el.textContent = lines.join('\n');
+    el.scrollTop = el.scrollHeight;
+  }
+
+  // ---------- Player ----------
+  var player = null;
+  var apiReady = false;
+  var ready = false;
+  var pendingId = null;
+  var currentId = VIDEOS[0].id;
+  var currentLabel = VIDEOS[0].label;
+  var tapAt = 0;
+  var STATES = { '-1': 'unstarted', '0': 'ended', '1': 'playing', '2': 'paused', '3': 'buffering', '5': 'cued' };
+  var ERRORS = {
+    '2': 'the video id is not valid',
+    '5': 'the video cannot play in this browser',
+    '100': 'the video was removed or is private',
+    '101': 'the owner does not allow embedding',
+    '150': 'the owner does not allow embedding',
+    '153': 'YouTube could not identify this page (missing referrer)'
+  };
+
+  function setIcon(playing) {
+    $('iconPlay').style.display = playing ? 'none' : '';
+    $('iconPause').style.display = playing ? '' : 'none';
+  }
+
+  function buildPlayer() {
+    if (!apiReady) { return; }
+    if (player && typeof player.destroy === 'function') {
+      try { player.destroy(); } catch (e) { /* ignore */ }
+    }
+    ready = false;
+    setIcon(false);
+    $('playerSlot').innerHTML = '<div id="yt"></div>';
+    var opts = {
+      width: '100%',
+      height: '100%',
+      videoId: currentId,
+      playerVars: {
+        playsinline: 1,
+        rel: 0,
+        fs: 0,
+        iv_load_policy: 3,
+        controls: state.hide ? 0 : 1,
+        origin: window.location.origin
+      },
+      events: { onReady: onReady, onStateChange: onStateChange, onError: onError }
+    };
+    if (state.privacy) { opts.host = 'https://www.youtube-nocookie.com'; }
+    player = new window.YT.Player('yt', opts);
+    log('Player built. YouTube controls ' + (state.hide ? 'hidden' : 'shown') + ', privacy mode ' + (state.privacy ? 'on' : 'off') + '.');
+  }
+
+  function onReady() {
+    ready = true;
+    log('Player ready.');
+    if (pendingId) {
+      var id = pendingId;
+      pendingId = null;
+      player.loadVideoById(id);
+    }
+  }
+
+  function onStateChange(e) {
+    var name = STATES[String(e.data)] || ('state ' + e.data);
+    log('State: ' + name);
+    if (e.data === 1) {
+      setIcon(true);
+      if (tapAt) {
+        var secs = ((Date.now() - tapAt) / 1000).toFixed(1);
+        var muted = 'unknown';
+        try { muted = player.isMuted() ? 'yes' : 'no'; } catch (err) { /* ignore */ }
+        log('Started ' + secs + ' s after the tap. Muted: ' + muted + '.');
+        tapAt = 0;
+        state.plays += 1;
+        save();
+        renderCounts();
+      }
+    } else if (e.data === 2 || e.data === 0) {
+      setIcon(false);
+    }
+    if (e.data === 0) {
+      log('Video ended. Sliding to the shelf.');
+      $('shelf').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  function onError(e) {
+    var why = ERRORS[String(e.data)] || 'unknown reason';
+    log('ERROR ' + e.data + ': ' + why + ' (' + currentLabel + ')');
+  }
+
+  function playId(id, label) {
+    currentId = id;
+    currentLabel = label;
+    tapAt = Date.now();
+    log('Tap: ' + label + ' [' + id + ']');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (ready && player && typeof player.loadVideoById === 'function') {
+      player.loadVideoById(id);
+    } else {
+      pendingId = id;
+      log('Player not ready yet. The video will start when it is.');
+    }
+  }
+
+  window.onYouTubeIframeAPIReady = function () {
+    apiReady = true;
+    log('YouTube player script loaded.');
+    buildPlayer();
+  };
+
+  // ---------- Shelf ----------
+  function renderCards() {
+    var wrap = $('cards');
+    VIDEOS.forEach(function (v) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'card';
+      b.style.setProperty('--c', v.color);
+      b.setAttribute('aria-label', v.label);
+      var img = document.createElement('img');
+      img.src = 'https://i.ytimg.com/vi/' + v.id + '/hqdefault.jpg';
+      img.alt = '';
+      img.loading = 'lazy';
+      var tag = document.createElement('span');
+      tag.className = 'lang';
+      tag.textContent = v.lang;
+      b.appendChild(img);
+      b.appendChild(tag);
+      b.addEventListener('click', function () { playId(v.id, v.label); });
+      wrap.appendChild(b);
+    });
+  }
+
+  // ---------- Checklist ----------
+  function renderQuestions() {
+    var wrap = $('questions');
+    QUESTIONS.forEach(function (q, i) {
+      var box = document.createElement('div');
+      box.className = 'q';
+      var p = document.createElement('p');
+      p.textContent = (i + 1) + '. ' + q.text;
+      box.appendChild(p);
+      if (q.hint) {
+        var s = document.createElement('small');
+        s.textContent = q.hint;
+        box.appendChild(s);
+      }
+      var opts = document.createElement('div');
+      opts.className = 'opts';
+      CHOICES.forEach(function (c) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'btn' + (state.answers[q.key] === c ? ' on' : '');
+        b.textContent = c;
+        b.addEventListener('click', function () {
+          state.answers[q.key] = c;
+          save();
+          Array.prototype.forEach.call(opts.children, function (o) {
+            o.className = 'btn' + (o.textContent === c ? ' on' : '');
+          });
+        });
+        opts.appendChild(b);
+      });
+      box.appendChild(opts);
+      wrap.appendChild(box);
+    });
+  }
+
+  function renderCounts() {
+    $('playCount').textContent = String(state.plays);
+    $('adCount').textContent = String(state.ads);
+  }
+
+  // ---------- Own link ----------
+  function parseId(text) {
+    var t = String(text || '').trim();
+    var m = t.match(/(?:v=|youtu\.be\/|\/shorts\/|\/embed\/|\/live\/)([A-Za-z0-9_-]{11})/);
+    if (m) { return m[1]; }
+    if (/^[A-Za-z0-9_-]{11}$/.test(t)) { return t; }
+    return null;
+  }
+
+  // ---------- Results ----------
+  function buildResults() {
+    var out = [];
+    out.push('CHHOTI DUNIYA - PHASE 0 RESULTS');
+    out.push('When: ' + new Date().toString());
+    out.push('Page: ' + window.location.origin + window.location.pathname);
+    out.push('Device: ' + navigator.userAgent);
+    out.push('Screen: ' + window.innerWidth + ' x ' + window.innerHeight);
+    out.push('YouTube controls: ' + (state.hide ? 'hidden' : 'shown') + ' | Privacy mode: ' + (state.privacy ? 'on' : 'off'));
+    out.push('Videos started: ' + state.plays + ' | Ads seen: ' + state.ads);
+    out.push('');
+    QUESTIONS.forEach(function (q, i) {
+      out.push((i + 1) + '. ' + q.text);
+      out.push('   Answer: ' + (state.answers[q.key] || 'not answered'));
+    });
+    out.push('');
+    out.push('Notes: ' + (state.notes || 'none'));
+    out.push('');
+    out.push('Videos I trust:');
+    out.push(state.good || 'none given');
+    out.push('');
+    out.push('Videos I dislike:');
+    out.push(state.bad || 'none given');
+    out.push('');
+    out.push('Player log:');
+    out.push(lines.join('\n') || 'empty');
+    return out.join('\n');
+  }
+
+  function showFallback(text) {
+    var box = $('out');
+    box.value = text;
+    box.className = 'show';
+    box.focus();
+    box.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    $('copyStatus').textContent = ok
+      ? 'Copied. Paste it into the chat.'
+      : 'Could not copy automatically. Select the text below, copy it, and paste it into the chat.';
+  }
+
+  // ---------- Wire up ----------
+  function init() {
+    if (window.location.protocol === 'file:') { $('fileWarn').className = 'warn show'; }
+
+    renderCards();
+    renderQuestions();
+    renderCounts();
+
+    $('optHide').checked = !!state.hide;
+    $('optPrivacy').checked = !!state.privacy;
+    $('notes').value = state.notes || '';
+    $('good').value = state.good || '';
+    $('bad').value = state.bad || '';
+
+    $('optHide').addEventListener('change', function () { state.hide = this.checked; save(); buildPlayer(); });
+    $('optPrivacy').addEventListener('change', function () { state.privacy = this.checked; save(); buildPlayer(); });
+    $('notes').addEventListener('input', function () { state.notes = this.value; save(); });
+    $('good').addEventListener('input', function () { state.good = this.value; save(); });
+    $('bad').addEventListener('input', function () { state.bad = this.value; save(); });
+
+    $('adPlus').addEventListener('click', function () { state.ads += 1; save(); renderCounts(); log('Ad counted by parent.'); });
+    $('adMinus').addEventListener('click', function () { state.ads = Math.max(0, state.ads - 1); save(); renderCounts(); });
+
+    $('playBtn').addEventListener('click', function () {
+      if (!ready || !player) { log('Play button: player not ready.'); return; }
+      var s = -1;
+      try { s = player.getPlayerState(); } catch (e) { /* ignore */ }
+      if (s === 1 || s === 3) {
+        player.pauseVideo();
+      } else {
+        if (!tapAt) { tapAt = Date.now(); }
+        player.playVideo();
+      }
+    });
+    $('shelfBtn').addEventListener('click', function () {
+      $('shelf').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    $('ownPlay').addEventListener('click', function () {
+      var id = parseId($('ownLink').value);
+      if (!id) { log('Own link: could not find a video id in that text.'); return; }
+      playId(id, 'Own link');
+    });
+
+    $('copyBtn').addEventListener('click', function () {
+      var text = buildResults();
+      $('copyStatus').textContent = '';
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        navigator.clipboard.writeText(text).then(function () {
+          $('copyStatus').textContent = 'Copied. Paste it into the chat.';
+        }).catch(function () { showFallback(text); });
+      } else {
+        showFallback(text);
+      }
+    });
+
+    log('Page opened at ' + window.location.origin + '.');
+
+    // Load YouTube's player script last, once everything above is in place.
+    var s = document.createElement('script');
+    s.src = 'https://www.youtube.com/iframe_api';
+    s.onerror = function () { log('ERROR: the YouTube player script did not load. Check the internet connection.'); };
+    document.head.appendChild(s);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>
