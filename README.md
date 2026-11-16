@@ -116,6 +116,7 @@ The tests need Python with Playwright and a Chrome binary (`CHROME=/path/to/chro
 
 ## 9. Change log
 
+- 1.1.1 (16 Nov 2026): resuming after a pause now closes the tray (the real player resumes through a buffering state).
 - 1.1.0 (16 Nov 2026): full-screen player with swipe-up tray; Home lists every allowed video below the plate; calm closer guaranteed; treat never last; back gesture stays in the app; hide rule reachable after three abandons; playback errors expire after 7 days; tests and docs added.
 - 1.0.1 (16 Nov 2026): both languages kept on screen; install manifest and icons.
 - 1.0.0 (16 Nov 2026): first full app: 138-video catalog, engine, time rules, parent area, tap guard.

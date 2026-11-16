@@ -37,6 +37,7 @@ with sync_playwright() as p:
     pg.screenshot(path='/tmp/cd_home_landscape.png')
     pg.locator('#row .card').first.click(); pg.wait_for_timeout(500)
     check('card tap opens the player', vis('#play'))
+    print('INFO full screen engaged in this browser: %s' % pg.evaluate('()=>!!document.fullscreenElement'))
     check('video is playing', st() == 1, st())
     check('loading cover is gone', not vis('#loading'))
     check('tray starts closed', not tray())

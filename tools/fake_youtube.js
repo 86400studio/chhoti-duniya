@@ -8,7 +8,7 @@ window.YT = { Player: function (id, opts) {
     dur = hit ? hit.secs : 120; t = 0; clearInterval(timer); fire(3);
     setTimeout(function () { fire(1); run(); }, 150);
   };
-  this.playVideo = function () { if (state !== 1) { fire(1); run(); } };
+  this.playVideo = function () { if (state !== 1) { fire(3); setTimeout(function () { fire(1); run(); }, 60); } };   // resumes through buffering, as the real player does
   this.pauseVideo = function () { if (state === 1 || state === 3) { fire(2); } };
   this.seekTo = function (x) { t = x; };
   this.getCurrentTime = function () { return t; };

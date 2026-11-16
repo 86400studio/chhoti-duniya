@@ -332,7 +332,7 @@
      SETTINGS BLOCK: every weight, share and limit the engine uses.
      ===================================================================== */
   var CFG = {
-    version: '1.1.0',
+    version: '1.1.1',
     weights: { quality: 0.30, subInterest: 0.30, videoInterest: 0.15, novelty: 0.15, balance: 0.10 },
     repeatPenalty: 0.5,
     ema: 0.2,                       // I_new = 0.8 * I_old + 0.2 * signal
@@ -974,7 +974,7 @@
 
   /* ---------- Player ---------- */
   var player = null, apiReady = false, ready = false, pendingId = null, ytState = -1, prevState = -1;
-  var watchdog = 0, shieldOffUntil = 0, lastVideo = null, loadTimer = 0;
+  var watchdog = 0, shieldOffUntil = 0, lastVideo = null, loadTimer = 0, wasPaused = false;
 
   function loadApi() {
     if (window.YT && window.YT.Player) { return; }
@@ -1041,12 +1041,13 @@
     if (e.data === 1) {
       clearTimeout(watchdog);
       cover(''); $('talk').hidden = true;
-      if (prevState === 2) { closeTray(); }
+      if (wasPaused) { wasPaused = false; closeTray(); }   // resuming after a pause (often 2 -> 3 -> 1) puts the tray away
       if (view) {                                        // trust the player's length only when it matches the catalog (an ad reports its own)
         try { var d = player.getDuration(); if (d > 0 && Math.abs(d - view.v.secs) <= Math.max(20, view.v.secs * 0.15)) { view.dur = d; } } catch (err) { /* ignore */ }
       }
       shieldSync();
     } else if (e.data === 2) {
+      wasPaused = true;
       if (S.set.shield && Date.now() > shieldOffUntil) { cover('play'); }
       if (screenNow === 'play') { openTray(); }
     } else if (e.data === 0) {
@@ -1087,7 +1088,7 @@
     lastVideo = v;
     startView(v);
     show('play');
-    closeTray(); $('talk').hidden = true; cover(''); loading(true, v);
+    wasPaused = false; closeTray(); $('talk').hidden = true; cover(''); loading(true, v);
     shieldOffUntil = 0; shieldSync();
     renderShelf();
     if (ready && player && player.loadVideoById) { player.loadVideoById(v.id); } else { pendingId = v.id; }
