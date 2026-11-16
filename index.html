@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="theme-color" content="#FFF6E5">
@@ -25,7 +25,7 @@
     font-family: "Mukta", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     font-size: 16px; line-height: 1.45;
     -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
-    overscroll-behavior-y: contain;
+    overscroll-behavior-y: contain; touch-action: manipulation; -webkit-touch-callout: none;
   }
   h1, h2, h3, .brand, .baloo { font-family: "Baloo 2", "Mukta", system-ui, sans-serif; }
   .screen[hidden], [hidden] { display: none !important; }
@@ -77,31 +77,34 @@
   @media (orientation: landscape) and (max-height: 560px) {
     .row { display: flex; overflow-x: auto; gap: 16px; padding-bottom: 12px; scrollbar-width: none; }
     .row::-webkit-scrollbar { display: none; }
-    .row .card { flex: 0 0 44vw; width: 44vw; }
+    .row .card { flex: 0 0 38vw; width: 38vw; }
     .cat { width: 60px; height: 60px; font-size: 28px; }
     .cats { padding-bottom: 10px; }
   }
   @media (min-width: 900px) and (min-height: 561px) { .row { grid-template-columns: repeat(4, 1fr); } }
 
-  /* ---------- Player ---------- */
-  .stage {
-    position: relative; width: 100%; aspect-ratio: 16 / 9;
-    max-height: calc(100vh - 150px); max-height: calc(100dvh - 150px); background: #000; overflow: hidden;
-  }
+  /* ---------- Player: full screen, with a swipe-up tray ---------- */
+  #play { position: fixed; inset: 0; z-index: 10; background: #000; }
+  .stage { position: absolute; inset: 0; background: #000; overflow: hidden; }
   #slot, #slot iframe, #yt { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
-  #shield { position: absolute; inset: 0; z-index: 2; background: transparent; cursor: pointer; }
+  #shield { position: absolute; inset: 0; z-index: 2; background: transparent; cursor: pointer; touch-action: none; }
   #cover {
-    position: absolute; inset: 0; z-index: 3; background: var(--ink);
-    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    position: absolute; inset: 0; z-index: 3; background: rgba(51, 38, 74, 0.86);
+    display: flex; align-items: center; justify-content: center; cursor: pointer; touch-action: none;
   }
   #cover .disc {
     width: 120px; height: 120px; border-radius: 50%; background: var(--mango);
     box-shadow: 0 6px 0 var(--mango-dark); display: flex; align-items: center; justify-content: center;
   }
+  #cover.blank .disc { display: none; }
   #cover svg { width: 60px; height: 60px; fill: var(--ink); }
-  .controls { height: 88px; display: flex; align-items: center; justify-content: center; gap: 24px; }
+  #loading { position: absolute; inset: 0; z-index: 3; background: #000; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+  #loading img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0.55; }
+  .pulse { position: relative; width: 84px; height: 84px; border-radius: 50%; background: var(--mango); animation: pulse 0.9s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { transform: scale(0.7); opacity: 0.7; } 50% { transform: scale(1); opacity: 1; } }
+  #talk { position: absolute; left: 16px; right: 64px; top: 12px; z-index: 4; margin: 0; color: #fff; font-size: 15px; pointer-events: none; }
   .big {
-    width: 72px; height: 72px; border-radius: 50%; border: 0; background: var(--mango);
+    width: 72px; height: 72px; border-radius: 50%; border: 0; background: var(--mango); flex: 0 0 auto;
     box-shadow: 0 4px 0 var(--mango-dark); display: flex; align-items: center; justify-content: center;
     cursor: pointer; transition: transform 120ms ease, box-shadow 120ms ease; font-size: 32px; line-height: 1;
   }
@@ -109,21 +112,30 @@
   .big svg { width: 34px; height: 34px; fill: var(--ink); }
   .big.alt { background: var(--white); box-shadow: 0 4px 0 #D9CDB6; }
   .tiny {
-    position: relative; width: 36px; height: 36px; border-radius: 50%; border: 0; background: transparent;
-    font-size: 15px; opacity: 0.4; cursor: pointer; touch-action: none;
+    position: absolute; right: 8px; top: 8px; z-index: 6; width: 36px; height: 36px; border-radius: 50%; border: 0;
+    background: transparent; color: #fff; font-size: 15px; opacity: 0.35; cursor: pointer; touch-action: none;
   }
-  .tiny.holding { opacity: 1; background: var(--line); }
-  #after { display: flex; align-items: center; gap: 16px; padding: 0 16px 12px; }
-  #talk { margin: 0; font-size: 14px; color: var(--slate); -webkit-user-select: text; user-select: text; }
-  .shelf { padding: 0 16px 24px; scroll-margin-top: 8px; }
-  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-  @media (orientation: landscape) { .grid { grid-template-columns: repeat(3, 1fr); } }
-  @media (orientation: landscape) and (max-height: 560px) {
-    .playrow { display: flex; align-items: stretch; }
-    .stage { flex: 1 1 auto; width: auto; aspect-ratio: auto; height: calc(100vh - 48px); height: calc(100dvh - 48px); max-height: none; }
-    .controls { flex: 0 0 104px; flex-direction: column; height: auto; gap: 14px; }
-    .shelf { padding-top: 8px; }
+  .tiny.holding { opacity: 1; background: rgba(255, 255, 255, 0.35); }
+  #handle {
+    position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 5;
+    width: 88px; height: 36px; border-radius: 18px; border: 0; background: rgba(255, 255, 255, 0.6);
+    display: flex; align-items: center; justify-content: center; cursor: pointer; touch-action: none;
   }
+  #handle svg { width: 28px; height: 28px; fill: var(--ink); }
+  body.tray-open #handle { display: none; }
+  #tray {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 7; background: var(--cream);
+    border-radius: 24px 24px 0 0; padding: 8px 16px 14px;
+    transform: translateY(105%); transition: transform 220ms ease; touch-action: pan-x;
+  }
+  #tray.open { transform: translateY(0); }
+  .grip { width: 56px; height: 6px; border-radius: 3px; background: #D9CDB6; margin: 2px auto 10px; }
+  .trayrow { display: flex; align-items: center; gap: 14px; }
+  .traycards { display: flex; gap: 14px; overflow-x: auto; flex: 1 1 auto; padding: 2px 2px 4px; scrollbar-width: none; }
+  .traycards::-webkit-scrollbar { display: none; }
+  .traycards .card { flex: 0 0 auto; width: 30vw; min-width: 150px; max-width: 250px; border-width: 5px; border-radius: 20px; }
+  @media (orientation: portrait) { .traycards .card { width: 44vw; } }
+  @media (max-height: 420px) { .traycards .card { width: 26vw; max-width: 210px; } .big { width: 64px; height: 64px; } }
 
   /* ---------- Goodbye and problem ---------- */
   .center { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px; position: relative; }
@@ -181,28 +193,29 @@
   <div class="row" id="row"></div>
 </div>
 
-<!-- PLAYER -->
+<!-- PLAYER: full-screen video, tap to pause, swipe up for more -->
 <div id="play" class="screen" hidden>
-  <div class="playrow">
-    <div class="stage">
-      <div id="slot"><div id="yt"></div></div>
-      <div id="shield"></div>
-      <div id="cover" hidden><div class="disc">
-        <svg id="coverPlay" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
-        <svg id="coverReplay" viewBox="0 0 24 24" aria-hidden="true" style="display:none"><path d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z"/></svg>
-      </div></div>
-    </div>
-    <div class="controls">
-      <button class="big" id="pp" type="button" aria-label="Play or pause">
-        <svg id="iconPlay" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
-        <svg id="iconPause" viewBox="0 0 24 24" aria-hidden="true" style="display:none"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
-      </button>
-      <button class="big alt" id="homeBtn" type="button" aria-label="Home">&#127968;</button>
-      <button class="tiny" id="peek" type="button" aria-label="Parents: hold to tap the video itself">&#9197;</button>
+  <div class="stage">
+    <div id="slot"><div id="yt"></div></div>
+    <div id="shield"></div>
+    <div id="loading" hidden><img id="loadImg" alt=""><div class="pulse"></div></div>
+    <div id="cover" hidden><div class="disc">
+      <svg id="coverPlay" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+      <svg id="coverReplay" viewBox="0 0 24 24" aria-hidden="true" style="display:none"><path d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z"/></svg>
+    </div></div>
+    <p id="talk" hidden></p>
+    <button class="tiny" id="peek" type="button" aria-label="Parents: hold to tap the video itself">&#9197;</button>
+    <button id="handle" type="button" aria-label="More videos">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7l8 8-1.9 1.9L12 10.8l-6.1 6.1L4 15z"/></svg>
+    </button>
+    <div id="tray">
+      <div class="grip"></div>
+      <div class="trayrow">
+        <button class="big alt" id="homeBtn" type="button" aria-label="Home">&#127968;</button>
+        <div class="traycards" id="shelfCards"></div>
+      </div>
     </div>
   </div>
-  <div id="after" hidden><p id="talk"></p></div>
-  <section class="shelf" id="shelf"><div class="grid" id="shelfCards"></div></section>
 </div>
 
 <!-- GOODBYE -->
@@ -276,7 +289,7 @@
       <div class="field"><label for="sHi">Hindi share of the week (%)</label><input type="number" id="sHi" min="0" max="100" inputmode="numeric"></div>
       <div class="field"><label for="sName">Greeting name (stays on this phone)</label><input type="text" id="sName" maxlength="20" autocomplete="off"></div>
       <div class="field"><label for="sShield">Tap guard over the video</label><input type="checkbox" id="sShield"></div>
-      <p class="sub" style="margin-top:8px">The tap guard stops taps on the video from opening YouTube. It also blocks the "Skip ad" button. To skip an ad yourself, press and hold the small &#9197; button beside the video for one second; the guard lifts for 8 seconds.</p>
+      <p class="sub" style="margin-top:8px">The tap guard stops taps on the video from opening YouTube. It also blocks the "Skip ad" button. To skip an ad yourself, press and hold the small &#9197; button in the top-right corner of the video for one second; the guard lifts for 8 seconds.</p>
       <div class="field"><label for="sWhy">Show why each card was picked</label><input type="checkbox" id="sWhy"></div>
       <h3>Shelves</h3>
       <div id="catToggles"></div>
@@ -319,7 +332,7 @@
      SETTINGS BLOCK: every weight, share and limit the engine uses.
      ===================================================================== */
   var CFG = {
-    version: '1.0.1',
+    version: '1.1.0',
     weights: { quality: 0.30, subInterest: 0.30, videoInterest: 0.15, novelty: 0.15, balance: 0.10 },
     repeatPenalty: 0.5,
     ema: 0.2,                       // I_new = 0.8 * I_old + 0.2 * signal
@@ -330,10 +343,10 @@
     shelfSlots: { fav: 3, bal: 2, fresh: 1 },
     maxPlaysPerDay: 2, maxRunChannel: 2, maxRunCategory: 2,
     langTolerance: 10,
-    calmUnderSecs: 300,
+    calmUnderSecs: 300, calmRoomSecs: 125,
     fitSlackSecs: 30,
-    treatAfterCore: 2, treatPerDay: 1,
-    hideBelow: -0.6, hideAfterTries: 3, hideDays: 14,
+    treatAfterCore: 2, treatPerDay: 1, treatRoomSecs: 150,
+    hideBelow: -0.45, hideAfterTries: 3, hideDays: 14,      // three abandons in a row reach -0.49
     levelUpFinishes: 8, levelUpDistinct: 4,
     sessionIdleMins: 30,
     extensionSecs: 300
@@ -718,12 +731,15 @@
     opts = opts || {};
     var now = Date.now();
     var list = CATALOG.filter(function (v) {
-      if (S.block[v.id] || S.blockCh[v.ch] || S.set.catsOff[v.cat] || S.errs[v.id]) { return false; }
+      if (S.block[v.id] || S.blockCh[v.ch] || S.set.catsOff[v.cat]) { return false; }
+      if (S.errs[v.id] && now - S.errs[v.id].t < 7 * 86400000) { return false; }
       if (S.hide[v.id] && S.hide[v.id] > now) { return false; }
       if (playsToday(v.id) >= CFG.maxPlaysPerDay) { return false; }
       if (v.secs > ctx.left + CFG.fitSlackSecs) { return false; }
+      if (v.energy !== 'calm' && v.secs > ctx.left - CFG.calmRoomSecs) { return false; }   // leave room for a calm closer
       if (!levelOk(v)) { return false; }
       if (v.cat === 9 && !opts.treat) { return false; }
+      if (v.cat === 9 && v.secs > ctx.left - CFG.treatRoomSecs) { return false; }   // a treat is never the last video: leave room after it
       if (opts.not && opts.not[v.id]) { return false; }
       return true;
     });
@@ -776,6 +792,7 @@
     if (opts.cat) {                                      // a shelf button was tapped: best of that shelf
       var inCat = eligible(ctx, { not: opts.not, loose: true, treat: opts.cat === 9 && treatEarned() })
         .filter(function (v) { return v.cat === opts.cat; });
+      if (opts.all) { take(rank(inCat, ctx), 999, used, 'Shelf', out); return out; }
       var left1 = take(rank(inCat, ctx), total, used, 'Shelf', out, 0, opts.cat === 9 ? null : quota);
       if (left1 > 0) { take(rank(inCat, ctx), left1, used, 'Shelf', out); }
       return out;
@@ -828,6 +845,21 @@
       var treats = rank(eligible(ctx, { treat: true }).filter(function (v) { return v.cat === 9; }), ctx);
       if (treats.length) { out.push({ v: treats[0].v, why: 'Treat', score: treats[0].s }); }
     }
+
+    // Home also lists every other allowed video below the plate, best first, with the languages interleaved.
+    if (opts.all) {
+      var rest = rank(pool.filter(function (v) { return !used[v.id]; }), ctx);
+      var q = { hi: rest.filter(function (x) { return x.v.lang === 'hi'; }), en: rest.filter(function (x) { return x.v.lang === 'en'; }) };
+      var nHi = 0, n = 0;
+      while (q.hi.length || q.en.length) {
+        var wantHi = (n === 0 ? S.set.hi >= 50 : (100 * nHi / n) < S.set.hi);
+        var src = (wantHi && q.hi.length) ? q.hi : (q.en.length ? q.en : q.hi);
+        var x = src.shift();
+        if (x.v.lang === 'hi') { nHi++; }
+        n++;
+        out.push({ v: x.v, why: 'More', score: x.s });
+      }
+    }
     return out;
   }
   function treatEarned() { var d = day(); return d.core >= CFG.treatAfterCore && d.treat < CFG.treatPerDay; }
@@ -844,6 +876,11 @@
   function finishView() {
     if (!view) { return; }
     var v = view.v, h = hist(v.id), d = day();
+    if (view.maxT < 3) {                                 // it never really started: no signal, no count
+      d.plays[v.id] = Math.max(0, (d.plays[v.id] || 1) - 1);
+      if (v.cat === 9) { d.treat = Math.max(0, d.treat - 1); }
+      view = null; save(); return;
+    }
     var frac = view.dur > 0 ? view.maxT / view.dur : 0;
     var x;
     if (frac >= CFG.finishAt) {
@@ -903,11 +940,11 @@
       var b = document.createElement('button');
       b.type = 'button'; b.className = 'cat' + (catFilter === c.id ? ' on' : '');
       b.style.setProperty('--c', c.color); b.textContent = c.emoji; b.setAttribute('aria-label', c.name);
-      b.addEventListener('click', function () { catFilter = (catFilter === c.id ? 0 : c.id); renderHome(); });
+      b.addEventListener('click', function () { enterFs(); catFilter = (catFilter === c.id ? 0 : c.id); renderHome(); });
       nav.appendChild(b);
     });
-    var items = pick(CFG.homeSlots, { home: true, cat: catFilter || 0 });
-    if (catFilter && !items.length) { catFilter = 0; items = pick(CFG.homeSlots, { home: true }); }
+    var items = pick(CFG.homeSlots, { home: true, all: true, cat: catFilter || 0 });
+    if (catFilter && !items.length) { catFilter = 0; items = pick(CFG.homeSlots, { home: true, all: true }); }
     var row = $('row'); row.innerHTML = '';
     if (!items.length) { showBye(); return; }
     items.forEach(function (it) { row.appendChild(cardEl(it, openVideo)); });
@@ -936,8 +973,8 @@
   }
 
   /* ---------- Player ---------- */
-  var player = null, apiReady = false, ready = false, pendingId = null, ytState = -1;
-  var watchdog = 0, shieldOffUntil = 0;
+  var player = null, apiReady = false, ready = false, pendingId = null, ytState = -1, prevState = -1;
+  var watchdog = 0, shieldOffUntil = 0, lastVideo = null, loadTimer = 0;
 
   function loadApi() {
     if (window.YT && window.YT.Player) { return; }
@@ -958,42 +995,72 @@
     ready = true;
     if (pendingId) { var id = pendingId; pendingId = null; player.loadVideoById(id); }
   }
-  function setIcons(playing) {
-    $('iconPlay').style.display = playing ? 'none' : '';
-    $('iconPause').style.display = playing ? '' : 'none';
+
+  // Full screen and landscape, like YouTube Kids. Both need a tap, so they are requested from card taps.
+  function lockLandscape() {
+    try { if (screen.orientation && screen.orientation.lock) { screen.orientation.lock('landscape').catch(function () {}); } } catch (e) { /* ignore */ }
   }
-  function cover(mode) {                                 // '', 'play' or 'replay'
-    $('cover').hidden = !mode;
+  function unlockOrientation() {
+    try { if (screen.orientation && screen.orientation.unlock) { screen.orientation.unlock(); } } catch (e) { /* ignore */ }
+  }
+  function enterFs() {
+    try {
+      var el = document.documentElement;
+      if (!document.fullscreenElement && el.requestFullscreen) {
+        var pr = el.requestFullscreen({ navigationUI: 'hide' });
+        if (pr && pr.then) { pr.then(lockLandscape).catch(function () {}); }
+      } else { lockLandscape(); }
+    } catch (e) { /* ignore */ }
+  }
+
+  function cover(mode) {                                 // '', 'play', 'replay' or 'blank'
+    var c = $('cover');
+    c.hidden = !mode;
+    c.className = mode === 'blank' ? 'blank' : '';
     $('coverPlay').style.display = mode === 'replay' ? 'none' : '';
     $('coverReplay').style.display = mode === 'replay' ? '' : 'none';
   }
+  function loading(on, v) {
+    clearTimeout(loadTimer);
+    $('loading').hidden = !on;
+    if (on && v) {
+      $('loadImg').src = 'https://i.ytimg.com/vi/' + v.id + '/mqdefault.jpg';
+      loadTimer = setTimeout(function () { $('loading').hidden = true; }, 2500);
+    }
+  }
+  function openTray() { $('tray').classList.add('open'); document.body.classList.add('tray-open'); }
+  function closeTray() { $('tray').classList.remove('open'); document.body.classList.remove('tray-open'); }
   function shieldSync() {
     var on = S.set.shield && Date.now() > shieldOffUntil;
     $('shield').hidden = !on;
     if (!on) { cover(''); }
   }
   function onState(e) {
-    ytState = e.data;
+    prevState = ytState; ytState = e.data;
+    if (e.data === 1 || e.data === 3) { loading(false); }
     if (e.data === 1) {
       clearTimeout(watchdog);
-      setIcons(true); cover(''); $('after').hidden = true;
-      if (view) { try { var d = player.getDuration(); if (d > 0) { view.dur = d; } } catch (err) { /* ignore */ } }
+      cover(''); $('talk').hidden = true;
+      if (prevState === 2) { closeTray(); }
+      if (view) {                                        // trust the player's length only when it matches the catalog (an ad reports its own)
+        try { var d = player.getDuration(); if (d > 0 && Math.abs(d - view.v.secs) <= Math.max(20, view.v.secs * 0.15)) { view.dur = d; } } catch (err) { /* ignore */ }
+      }
       shieldSync();
     } else if (e.data === 2) {
-      setIcons(false);
       if (S.set.shield && Date.now() > shieldOffUntil) { cover('play'); }
+      if (screenNow === 'play') { openTray(); }
     } else if (e.data === 0) {
-      setIcons(false);
       onEnded();
     }
   }
   function onError(e) {
-    clearTimeout(watchdog);
-    if (view) { S.errs[view.v.id] = e.data; var d = day(); d.plays[view.v.id] = Math.max(0, (d.plays[view.v.id] || 1) - 1); view = null; save(); }
-    if (remaining() > 0 && renderShelf() > 0) {
-      cover('play'); $('cover').hidden = true;
-      $('shelf').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } else { renderHome(); }
+    clearTimeout(watchdog); loading(false);
+    if (view) {
+      S.errs[view.v.id] = { c: e.data, t: Date.now() };
+      var d = day(); d.plays[view.v.id] = Math.max(0, (d.plays[view.v.id] || 1) - 1);
+      view = null; save();
+    }
+    if (remaining() > 0 && renderShelf() > 0) { cover('blank'); openTray(); } else { renderHome(); }
   }
   function onEnded() {
     var v = view ? view.v : null;
@@ -1004,43 +1071,49 @@
     var n = renderShelf();
     if (!n) { endSession(); setTimeout(showBye, 900); return; }
     lastVideo = v;
-    if (S.set.shield) { cover('replay'); }
+    cover(S.set.shield ? 'replay' : '');
     if (v && TALK[v.sub]) {
-      $('talk').textContent = '💬 ' + TALK[v.sub][v.lang === 'hi' ? 0 : 1];
-      $('after').hidden = false;
+      $('talk').textContent = '\uD83D\uDCAC ' + TALK[v.sub][v.lang === 'hi' ? 0 : 1];
+      $('talk').hidden = false;
     }
-    setTimeout(function () { if (screenNow === 'play') { $('shelf').scrollIntoView({ behavior: 'smooth', block: 'start' }); } }, 400);
+    openTray();
   }
-  var lastVideo = null;
 
   function openVideo(v) {
     if (remaining() <= 0) { showBye(); return; }
     if (!apiReady && !(window.YT && window.YT.Player)) { show('oops'); loadApi(); return; }
+    enterFs();
     finishView();
     lastVideo = v;
     startView(v);
     show('play');
-    $('after').hidden = true; cover(''); setIcons(false);
+    closeTray(); $('talk').hidden = true; cover(''); loading(true, v);
     shieldOffUntil = 0; shieldSync();
     renderShelf();
     if (ready && player && player.loadVideoById) { player.loadVideoById(v.id); } else { pendingId = v.id; }
     clearTimeout(watchdog);
-    watchdog = setTimeout(function () {                  // not playing after 7 s: try again, then let her tap YouTube's own button
-      if (ytState !== 1 && screenNow === 'play') {
-        try { player.playVideo(); } catch (e) { /* ignore */ }
+    watchdog = setTimeout(function () {                  // nothing moving after 8 s: offer our own play button, then, last resort, YouTube's
+      if (stuck()) {
+        cover('play');
         watchdog = setTimeout(function () {
-          if (ytState !== 1 && screenNow === 'play') { shieldOffUntil = Date.now() + 15000; shieldSync(); setTimeout(shieldSync, 15100); }
-        }, 4000);
+          if (stuck()) { shieldOffUntil = Date.now() + 12000; shieldSync(); setTimeout(shieldSync, 12100); }
+        }, 9000);
       }
-    }, 7000);
+    }, 8000);
+  }
+  function stuck() {
+    if (screenNow !== 'play' || ytState === 1 || ytState === 3) { return false; }
+    var t = 0; try { t = player.getCurrentTime() || 0; } catch (e) { /* ignore */ }
+    return !(t > 0);
   }
   function togglePlay() {
     if (!ready || !player) { return; }
     if (ytState === 1 || ytState === 3) { player.pauseVideo(); return; }
     if (ytState === 0 && lastVideo) {                    // replay after the end counts as a new viewing
       if (remaining() <= 0) { showBye(); return; }
-      if (playsToday(lastVideo.id) >= CFG.maxPlaysPerDay) { $('shelf').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+      if (playsToday(lastVideo.id) >= CFG.maxPlaysPerDay) { openTray(); return; }
       startView(lastVideo);
+      closeTray(); $('talk').hidden = true;
       player.seekTo(0, true);
     }
     player.playVideo();
@@ -1048,8 +1121,27 @@
   function goHome() {
     try { if (ready) { player.pauseVideo(); } } catch (e) { /* ignore */ }
     finishView();
+    closeTray();
     catFilter = 0;
     renderHome();
+  }
+
+  // Touch handling on the video: tap, swipe up (open the tray), swipe down (close it).
+  function gestures(el, onTap, capture) {
+    var x0 = 0, y0 = 0, down = false;
+    el.addEventListener('pointerdown', function (e) {
+      down = true; x0 = e.clientX; y0 = e.clientY;
+      if (capture) { try { el.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ } }   // a swipe that ends over the tray still counts
+    });
+    el.addEventListener('pointerup', function (e) {
+      if (!down) { return; }
+      down = false;
+      var dx = e.clientX - x0, dy = e.clientY - y0;
+      if (dy < -36 && Math.abs(dy) > Math.abs(dx)) { openTray(); }
+      else if (dy > 36 && Math.abs(dy) > Math.abs(dx)) { closeTray(); }
+      else if (Math.abs(dx) < 14 && Math.abs(dy) < 14 && onTap) { onTap(e); }
+    });
+    el.addEventListener('pointercancel', function () { down = false; });
   }
 
   // One-second heartbeat: counts playing time and tracks how far she got.
@@ -1085,6 +1177,7 @@
   function openGate() {
     try { if (ready && ytState === 1) { player.pauseVideo(); } } catch (e) { /* ignore */ }
     gateFrom = screenNow === 'gate' ? gateFrom : screenNow;
+    unlockOrientation();
     gateCode = ''; gateTyped = '';
     for (var i = 0; i < 3; i++) { gateCode += String(Math.floor(Math.random() * 10)); }
     $('gateWords').textContent = gateCode.split('').map(function (d) { return WORDS[+d]; }).join(', ');
@@ -1099,6 +1192,7 @@
     }
   }
   function leaveParent() {
+    if (document.fullscreenElement) { lockLandscape(); }
     if (gateFrom === 'play' && view && remaining() > 0) { show('play'); } else { finishView(); renderHome(); }
   }
 
@@ -1149,7 +1243,7 @@
     out.push('BLOCKED VIDEOS: ' + (bl.length ? bl.join(', ') : 'none'));
     out.push('BLOCKED CHANNELS: ' + (bc.length ? bc.join(', ') : 'none'));
     out.push('THUMBS UP: ' + (lk.length ? lk.join(', ') : 'none'));
-    out.push('WOULD NOT PLAY: ' + (er.length ? er.map(function (id) { return id + ' (error ' + S.errs[id] + ')'; }).join(', ') : 'none'));
+    out.push('WOULD NOT PLAY: ' + (er.length ? er.map(function (id) { return id + ' (error ' + S.errs[id].c + ')'; }).join(', ') : 'none'));
     out.push('NEW WORDS THIS WEEK: ' + (S.words[weekKey()] || 0));
     return out.join('\n');
   }
@@ -1233,10 +1327,21 @@
     Array.prototype.forEach.call(document.querySelectorAll('[data-lock]'), function (el) { hold(el, 3000, openGate); });
     hold($('peek'), 1000, function () { shieldOffUntil = Date.now() + 8000; shieldSync(); setTimeout(shieldSync, 8100); });
 
-    $('shield').addEventListener('click', togglePlay);
-    $('cover').addEventListener('click', togglePlay);
-    $('pp').addEventListener('click', togglePlay);
+    gestures($('shield'), function () { if ($('tray').classList.contains('open')) { closeTray(); } else { togglePlay(); } }, true);
+    gestures($('cover'), togglePlay, true);
+    gestures($('handle'), openTray, true);
+    gestures($('tray'), null, false);
     $('homeBtn').addEventListener('click', goHome);
+
+    // Keep her inside the app: the phone's back gesture returns to Home instead of leaving.
+    try {
+      history.pushState({ cd: 1 }, '');
+      window.addEventListener('popstate', function () {
+        history.pushState({ cd: 1 }, '');
+        if (screenNow === 'play') { goHome(); } else if (screenNow === 'gate' || screenNow === 'parent') { leaveParent(); }
+      });
+    } catch (e) { /* ignore */ }
+    document.addEventListener('contextmenu', function (e) { if (screenNow !== 'parent' && screenNow !== 'gate') { e.preventDefault(); } });
     $('retry').addEventListener('click', function () { loadApi(); renderHome(); });
 
     var kp = $('keypad');
@@ -1293,7 +1398,18 @@
   // Test hooks (read-only helpers for checking the engine from the console).
   window.__cd = {
     cfg: CFG, catalog: CATALOG, state: function () { return S; }, pick: pick, remaining: remaining,
-    report: buildReport, context: context, save: save, home: renderHome, levelOf: levelOf
+    report: buildReport, context: context, save: save, home: renderHome, levelOf: levelOf,
+    treatEarned: treatEarned, endSession: endSession, endIfSpent: endSessionIfSpent, playsToday: playsToday,
+    // Simulates one viewing of a video up to the given fraction (used by tools/sim_test.py).
+    sim: function (id, frac) {
+      var v = BYID[id]; if (!v) { return false; }
+      startView(v);
+      var secs = Math.round(v.secs * frac);
+      for (var i = 0; i < secs; i++) { addSecond(v); }
+      view.maxT = v.secs * frac; view.dur = v.secs;
+      finishView();
+      return true;
+    }
   };
 
   if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); } else { init(); }
